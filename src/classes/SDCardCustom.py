@@ -56,3 +56,89 @@ class SDCardCustom:
             raise Exception(
                 f"Unexpected error while listing files in path: {path}")
 
+    @staticmethod
+    def create_directory(path: str) -> None:
+        if SDCardCustom.path_exists(path):
+            return
+
+        try:
+            os.mkdir(path)
+        except Exception:
+            raise Exception(
+                f"Unexpected error while creating directory: {path}")
+
+    @staticmethod
+    def create_file(path: str, truncate: bool = False) -> None:
+        if SDCardCustom.path_exists(path) and not truncate:
+            return
+
+        try:
+            with open(path, "w") as file:
+                file.write("")
+        except Exception:
+            raise Exception(f"Unexpected error while creating file: {path}")
+
+    @staticmethod
+    def append_line(path: str, line: str) -> None:
+        try:
+            with open(path, "a") as file:
+                file.write(line + "\n")
+        except Exception:
+            raise Exception(
+                f"Unexpected error while appending line to file: {path}")
+
+    @staticmethod
+    def append_lines(path: str, lines: list) -> None:
+        if not lines:
+            return
+
+        try:
+            with open(path, "a") as file:
+                for line in lines:
+                    file.write(str(line) + "\n")
+        except Exception:
+            raise Exception(
+                f"Unexpected error while appending lines to file: {path}")
+
+    @staticmethod
+    def read_file(path: str) -> str:
+        if not SDCardCustom.path_exists(path):
+            raise OSError(f"File does not exist: {path}")
+
+        try:
+            with open(path, "r") as file:
+                return file.read()
+        except Exception:
+            raise Exception(f"Unexpected error while reading file: {path}")
+
+    @staticmethod
+    def delete_file(path: str) -> None:
+        if not SDCardCustom.path_exists(path):
+            return
+
+        try:
+            os.remove(path)
+        except Exception:
+            raise Exception(f"Unexpected error while deleting file: {path}")
+
+    @staticmethod
+    def delete_directory(path: str) -> None:
+        if not SDCardCustom.path_exists(path):
+            return
+
+        try:
+            os.rmdir(path)
+        except Exception:
+            raise Exception(
+                f"Unexpected error while deleting directory: {path}")
+
+    @staticmethod
+    def get_file_size(path: str) -> int:
+        if not SDCardCustom.path_exists(path):
+            return 0
+
+        try:
+            return os.stat(path)[6]
+        except Exception:
+            raise Exception(
+                f"Unexpected error while getting file size: {path}")
