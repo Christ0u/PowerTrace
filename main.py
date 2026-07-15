@@ -26,18 +26,49 @@ def main():
     #     time.sleep_ms(500)
 
     sdcard = SDCardCustom()
-    logger = MeasurementLogger(sdcard, "/sd/test_log.txt", buffer_size=3)
+
+    logger = MeasurementLogger(sdcard)
 
     logger.start(truncate=True)
-    logger.log("10,0.12,0.45")
-    logger.log("20,0.15,0.51")
-    logger.log("30,0.18,0.63")
-    logger.log("40,0.20,0.70")
-    logger.log("50,0.24,0.82")
 
+    test_measurements = []
+
+    for i in range(1000):
+        timestamp = (i + 1) * 1000
+
+        bus_voltage = 5.00 + (i % 20) * 0.01
+        shunt_voltage = 0.010 + (i % 10) * 0.001
+        current = 0.120 + (i % 30) * 0.005
+        power = bus_voltage * current
+        charge = 0.050 + i * 0.010
+        energy = power * ((i + 1) * 0.1)
+
+        test_measurements.append((
+            timestamp,
+            bus_voltage,
+            shunt_voltage,
+            current,
+            power,
+            charge,
+            energy
+        ))
+
+    start = time.ticks_ms()
+    for measurement in test_measurements:
+        logger.log(
+            measurement[0],
+            measurement[1],
+            measurement[2],
+            measurement[3],
+            measurement[4],
+            measurement[5],
+            measurement[6])
+    elapsed = time.ticks_diff(time.ticks_ms(), start)
+    print("log() took:", elapsed, "ms")
     logger.stop()
 
-    print(sdcard.read_file("/sd/test_log.txt"))
+    # content = sdcard.read_file("/sd/logs/measurements.csv")
+    # print(content)
 
 
 if __name__ == "__main__":
