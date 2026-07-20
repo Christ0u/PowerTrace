@@ -1,13 +1,15 @@
 from src.classes.SDCardCustom import SDCardCustom
 from src.classes.RingBuffer import RingBuffer
-from src.config.config import MEASUREMENT_LOGGER_BUFFER_SIZE, MEASUREMENT_LOGGER_DECIMAL_PRECISION, SDCARD_ROOT_PATH
+from src.config.config import MEASUREMENT_LOGGER_BUFFER_SIZE, MEASUREMENT_LOGGER_DECIMAL_PRECISION, MEASUREMENT_LOGGER_LOGS_DIRECTORY, SDCARD_ROOT_PATH
 
 
 class MeasurementLogger:
     def __init__(
-            self,
-            sdcard: SDCardCustom,
-            file_path: str = SDCARD_ROOT_PATH + "/logs/measurements.csv",
+        self,
+        sdcard: SDCardCustom,
+        file_path: str = SDCARD_ROOT_PATH +
+        MEASUREMENT_LOGGER_LOGS_DIRECTORY +
+        "/measurements.csv",
             buffer_size: int = MEASUREMENT_LOGGER_BUFFER_SIZE):
 
         self.__sdcard = sdcard
@@ -20,7 +22,7 @@ class MeasurementLogger:
         parts = file_path.split("/")
 
         if len(parts) <= 2:
-            return "/sd"
+            return SDCARD_ROOT_PATH
 
         return "/".join(parts[:-1])
 
@@ -34,20 +36,12 @@ class MeasurementLogger:
     @staticmethod
     def __build_csv_line(timestamp: int,
                          bus_voltage: float | int,
-                         shunt_voltage: float | int,
-                         current: float | int,
-                         power: float | int,
-                         charge: float | int,
-                         energy: float | int) -> str:
+                         current: float | int) -> str:
 
         result = ",".join([
             str(timestamp),
             MeasurementLogger.__format_float(bus_voltage),
-            MeasurementLogger.__format_float(shunt_voltage),
-            MeasurementLogger.__format_float(current),
-            MeasurementLogger.__format_float(power),
-            MeasurementLogger.__format_float(charge),
-            MeasurementLogger.__format_float(energy)
+            MeasurementLogger.__format_float(current)
         ])
 
         return result
@@ -61,29 +55,21 @@ class MeasurementLogger:
         if truncate or self.__sdcard.get_file_size(self.__file_path) == 0:
             self.__sdcard.append_line(
                 self.__file_path,
-                "timestamp_ms, bus_voltage_V, shunt_voltage_V, current_A, power_W, charge_C, energy_J")
+                "timestamp_ms, bus_voltage_V, current_A")
 
         self.__is_started = True
 
     def log(self,
             timestamp: int,
             bus_voltage: float | int,
-            shunt_voltage: float | int,
-            current: float | int,
-            power: float | int,
-            charge: float | int,
-            energy: float | int) -> None:
+            current: float | int) -> None:
         if not self.__is_started:
             raise Exception("Measurement logger has not been started")
 
         line = self.__build_csv_line(
             timestamp,
             bus_voltage,
-            shunt_voltage,
-            current,
-            power,
-            charge,
-            energy)
+            current)
 
         if not self.__buffer.push(line):
             self.flush()
