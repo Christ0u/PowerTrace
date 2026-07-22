@@ -1,89 +1,423 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>PowerTrace</title>
+
     <link rel="stylesheet" href="/style.css">
 </head>
+
+
 <body>
-    <main class="container">
+
+<main class="container">
+
+
+    <!-- HEADER -->
+
+    <header class="header">
+
         <h1>PowerTrace</h1>
-        <p class="subtitle">Measurement acquisition control panel</p>
 
-        <section class="config-panel">
-        <h2>Acquisition configuration</h2>
+        <p>
+            Measurement acquisition control panel
+        </p>
 
-        <label for="sample-period-input">Sampling period (ms)</label>
-        <input
-            id="sample-period-input"
-            name="sample_period_ms"
-            type="number"
-            min="10"
-            max="5000"
-            step="1"
-            value="50"
-        >
-        <p class="hint">Allowed range: 10 ms to 5000 ms.</p>
+    </header>
+
+
+
+
+    <!-- ACQUISITION CONFIGURATION -->
+
+    <section class="card">
+
+
+        <h2>
+            Acquisition configuration
+        </h2>
+
+
+
+        <div class="form-group">
+
+            <label for="sample-period-input">
+                Sampling period
+            </label>
+
+
+            <div class="input-with-unit">
+
+                <input
+                    id="sample-period-input"
+                    name="sample_period_ms"
+                    type="number"
+                    min="10"
+                    max="5000"
+                    step="1"
+                    value="50"
+                >
+
+                <span>
+                    ms
+                </span>
+
+            </div>
+
+
+            <p class="hint">
+                Allowed range: 10 ms to 5000 ms.
+            </p>
+
+        </div>
+
+
+
 
         <fieldset class="recording-mode-group">
-            <legend>Recording mode</legend>
 
-            <label>
+
+            <legend>
+                Recording mode
+            </legend>
+
+
+
+            <label class="radio-option">
+
                 <input
                     type="radio"
                     name="recording_mode"
                     value="manual"
                     checked
                 >
-                Manual stop
+
+                <span>
+                    Manual stop
+                </span>
+
             </label>
 
-            <label>
+
+
+
+            <label class="radio-option">
+
                 <input
                     type="radio"
                     name="recording_mode"
                     value="timed"
                 >
-                Timed recording
+
+                <span>
+                    Timed recording
+                </span>
+
             </label>
+
+
+
         </fieldset>
 
-        <div id="duration-field-container" class="hidden">
-            <label for="duration-seconds-input">Duration (s)</label>
-            <input
-                id="duration-seconds-input"
-                name="duration_seconds"
-                type="number"
-                min="1"
-                max="3600"
-                step="1"
-                value="30"
-            >
-            <p class="hint">Used only for timed recording. Allowed range: 1 s to 3600 s.</p>
+
+
+
+
+        <div
+            id="duration-field-container"
+            class="form-group hidden"
+        >
+
+
+            <label for="duration-seconds-input">
+
+                Duration
+
+            </label>
+
+
+
+            <div class="input-with-unit">
+
+
+                <input
+                    id="duration-seconds-input"
+                    name="duration_seconds"
+                    type="number"
+                    min="1"
+                    max="3600"
+                    step="1"
+                    value="30"
+                >
+
+
+                <span>
+                    s
+                </span>
+
+
+            </div>
+
+
+
+            <p class="hint">
+                Allowed range: 1 s to 3600 s.
+            </p>
+
+
         </div>
+
+
+
     </section>
 
-        <section class="actions">
-            <button id="start-button" type="button">Start recording</button>
-            <button id="stop-button" type="button">Stop recording</button>
-        </section>
 
-        <section class="status-panel">
-            <h2>Status</h2>
 
-            <p><strong>State:</strong> <span id="status-text">Loading...</span></p>
-            <p><strong>Recording:</strong> <span id="recording-text">No</span></p>
-            <p><strong>Stop requested:</strong> <span id="stop-requested-text">No</span></p>
-            <p><strong>Sample period:</strong> <span id="sample-period-text">0</span> ms</p>
-            <p><strong>Target duration:</strong> <span id="target-duration-text">None</span></p>
-            <p><strong>Recorded samples:</strong> <span id="samples-text">0</span></p>
-            <p><strong>Duration:</strong> <span id="duration-text">0</span> ms</p>
-            <p><strong>Last error:</strong> <span id="error-text">None</span></p>
-            <p><strong>Server message:</strong> <span id="message-text">Ready</span></p>
-        </section>
-    </main>
 
-    <script src="/script.js"></script>
+
+    <!-- CONTROLS -->
+
+    <section class="card actions">
+
+
+        <h2>
+            Control
+        </h2>
+
+
+
+        <div class="button-group">
+
+
+            <button
+                id="start-button"
+                class="button start"
+                type="button"
+            >
+                Start recording
+            </button>
+
+
+
+            <button
+                id="stop-button"
+                class="button stop"
+                type="button"
+            >
+                Stop recording
+            </button>
+
+
+
+        </div>
+
+
+
+    </section>
+
+
+
+
+
+
+    <!-- STATUS -->
+
+    <section class="card status-panel">
+
+
+        <h2>
+            Status
+        </h2>
+
+
+
+        <div class="status-grid">
+
+
+
+            <div class="status-item">
+
+                <span>
+                    State
+                </span>
+
+                <strong id="status-text">
+                    Loading...
+                </strong>
+
+            </div>
+
+
+
+
+
+            <div class="status-item">
+
+                <span>
+                    Recording
+                </span>
+
+                <strong id="recording-text">
+                    No
+                </strong>
+
+            </div>
+
+
+
+
+
+            <div class="status-item">
+
+                <span>
+                    Recorded samples
+                </span>
+
+                <strong id="samples-text">
+                    0
+                </strong>
+
+            </div>
+
+
+
+
+
+            <div class="status-item">
+
+                <span>
+                    Duration
+                </span>
+
+
+                <strong>
+
+                    <span id="duration-text">
+                        0
+                    </span>
+
+                    ms
+
+                </strong>
+
+            </div>
+
+
+
+
+
+            <div class="status-item">
+
+                <span>
+                    Sample period
+                </span>
+
+
+                <strong>
+
+                    <span id="sample-period-text">
+                        0
+                    </span>
+
+                    ms
+
+                </strong>
+
+            </div>
+
+
+
+
+
+            <div class="status-item">
+
+                <span>
+                    Target duration
+                </span>
+
+
+                <strong id="target-duration-text">
+                    None
+                </strong>
+
+            </div>
+
+
+
+
+
+            <div class="status-item">
+
+                <span>
+                    Stop requested
+                </span>
+
+
+                <strong id="stop-requested-text">
+                    No
+                </strong>
+
+            </div>
+
+
+
+
+
+            <div class="status-item">
+
+                <span>
+                    Server message
+                </span>
+
+
+                <strong id="message-text">
+                    Ready
+                </strong>
+
+            </div>
+
+
+
+
+
+            <div class="status-item error">
+
+
+                <span>
+                    Last error
+                </span>
+
+
+                <strong id="error-text">
+                    None
+                </strong>
+
+
+            </div>
+
+
+
+
+
+        </div>
+
+
+
+    </section>
+
+
+
+</main>
+
+
+
+
+<script src="/script.js"></script>
+
+
 </body>
+
 </html>
