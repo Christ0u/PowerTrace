@@ -14,11 +14,12 @@ wifi.create_open_access_point(SSID)
 
 
 async def main() -> None:
-    sdcard = SDCardCustom()
-    logger = MeasurementLogger(sdcard)
-    ina228 = INA228Custom()
+    ina228: INA228Custom = INA228Custom()
+    sdcard: SDCardCustom = SDCardCustom()
 
-    acquisition_service = AcquisitionService(
+    logger: MeasurementLogger = MeasurementLogger(sdcard)
+
+    acquisition_service: AcquisitionService = AcquisitionService(
         ina228=ina228,
         logger=logger,
         sample_period_ms=50

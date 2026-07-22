@@ -56,6 +56,9 @@ class AcquisitionService:
         self.__duration_ms = duration_ms
         self.__status = self.STATUS_RECORDING
 
+        file_path = self.__logger.generate_file_path()
+        self.__logger.set_file_path(file_path)
+
         self.__task = asyncio.create_task(
             self.__run(duration_ms=duration_ms, truncate=truncate)
         )

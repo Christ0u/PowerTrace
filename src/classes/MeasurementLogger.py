@@ -1,21 +1,40 @@
+import time
+import os
+import ubinascii
+
 from src.classes.SDCardCustom import SDCardCustom
 from src.classes.RingBuffer import RingBuffer
-from src.config.config import MEASUREMENT_LOGGER_BUFFER_SIZE, MEASUREMENT_LOGGER_DECIMAL_PRECISION, MEASUREMENT_LOGGER_LOGS_DIRECTORY, SDCARD_ROOT_PATH
+from src.config.config import MEASUREMENT_LOGGER_BUFFER_SIZE, MEASUREMENT_LOGGER_DECIMAL_PRECISION, SDCARD_ROOT_PATH, \
+    MEASUREMENT_LOGGER_LOGS_DIRECTORY
 
 
 class MeasurementLogger:
     def __init__(
-        self,
-        sdcard: SDCardCustom,
-        file_path: str = SDCARD_ROOT_PATH +
-        MEASUREMENT_LOGGER_LOGS_DIRECTORY +
-        "/measurements.csv",
+            self,
+            sdcard: SDCardCustom,
+            file_path: str | None = None,
             buffer_size: int = MEASUREMENT_LOGGER_BUFFER_SIZE):
 
         self.__sdcard = sdcard
         self.__file_path = file_path
         self.__buffer = RingBuffer(buffer_size)
         self.__is_started = False
+
+    def set_file_path(self, file_path: str) -> None:
+        self.__file_path = file_path
+
+    @staticmethod
+    def __generate_id(n_bytes: int = 16) -> str:
+        return ubinascii.hexlify(os.urandom(n_bytes)).decode()
+
+    @staticmethod
+    def generate_file_path() -> str:
+        return (f"{SDCARD_ROOT_PATH}"
+                f"{MEASUREMENT_LOGGER_LOGS_DIRECTORY}"
+                f"/measurements_"
+                f"{time.ticks_ms()}_"
+                f"{MeasurementLogger.__generate_id()}"
+                f".csv")
 
     @staticmethod
     def __get_directory_path(file_path: str) -> str:
@@ -47,6 +66,8 @@ class MeasurementLogger:
         return result
 
     def start(self, truncate: bool = True) -> None:
+        if self.__file_path is None:
+            raise Exception("No measurement file path defined.")
 
         directory_path = self.__get_directory_path(self.__file_path)
         self.__sdcard.create_directory(directory_path)
@@ -80,6 +101,9 @@ class MeasurementLogger:
     def flush(self) -> None:
         if not self.__is_started:
             raise Exception("Measurement logger has not been started")
+
+        if self.__file_path is None:
+            raise Exception("No measurement file path defined")
 
         lines: list[str] = []
 
