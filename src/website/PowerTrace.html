@@ -11,6 +11,21 @@
         <h1>PowerTrace</h1>
         <p class="subtitle">Measurement acquisition control panel</p>
 
+        <section class="config-panel">
+            <h2>Acquisition configuration</h2>
+
+            <label for="sample-period-input">Sampling period (ms)</label>
+            <input
+                id="sample-period-input"
+                type="number"
+                min="10"
+                max="5000"
+                step="1"
+                value="50"
+            >
+            <p class="hint">Allowed range: 10 ms to 5000 ms.</p>
+        </section>
+
         <section class="actions">
             <button id="start-button" type="button">Start recording</button>
             <button id="stop-button" type="button">Stop recording</button>

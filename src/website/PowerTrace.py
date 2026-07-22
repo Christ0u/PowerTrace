@@ -2,7 +2,8 @@ import os
 import ujson
 
 from src.classes.AcquisitionService import AcquisitionService
-from src.config.config import WEBSITE_NAME, WEB_SERVER_ROOT_PATH, WEB_SERVER_STYLE_PATH, WEB_SERVER_SCRIPT_PATH
+from src.config.config import WEBSITE_NAME, WEB_SERVER_ROOT_PATH, WEB_SERVER_STYLE_PATH, WEB_SERVER_SCRIPT_PATH, \
+    MIN_SAMPLE_PERIOD_MS, MAX_SAMPLE_PERIOD_MS
 from src.libs.microdot import Microdot, Response
 from src.libs.utemplate import Template
 
@@ -30,6 +31,29 @@ def get_response_from_json(payload: dict, status_code: int) -> Response:
         status_code=status_code,
         headers={"Content-Type": "application/json"}
     )
+
+
+def parse_sample_period_ms(request) -> int:
+    raw_value = request.form.get("sample_period_ms")
+
+    if raw_value is None:
+        raise ValueError("Missing sample_period_ms")
+
+    sample_period_ms = int(raw_value)
+
+    if sample_period_ms < MIN_SAMPLE_PERIOD_MS:
+        raise ValueError(
+            "sample_period_ms is too small "
+            f"(min: {MIN_SAMPLE_PERIOD_MS})"
+        )
+
+    if sample_period_ms > MAX_SAMPLE_PERIOD_MS:
+        raise ValueError(
+            "sample_period_ms is too large "
+            f"(max: {MAX_SAMPLE_PERIOD_MS})"
+        )
+
+    return sample_period_ms
 
 
 def generate_webpage() -> str:
@@ -117,6 +141,9 @@ async def acquisition_start(request) -> Response:
                     "data": acquisition_service.get_status()},
                 status_code=409
             )
+
+        sample_period_ms = parse_sample_period_ms(request)
+        acquisition_service.set_sample_period_ms(sample_period_ms)
 
         await acquisition_service.start(duration_ms=None, truncate=True)
 

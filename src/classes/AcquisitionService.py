@@ -4,6 +4,8 @@ import uasyncio as asyncio
 from src.classes.INA228Custom import INA228Custom
 from src.classes.MeasurementLogger import MeasurementLogger
 
+from src.config.config import MIN_SAMPLE_PERIOD_MS, MAX_SAMPLE_PERIOD_MS
+
 
 class AcquisitionService:
     STATUS_IDLE = "idle"
@@ -29,6 +31,15 @@ class AcquisitionService:
         self.__last_stop_timestamp_ms = None
         self.__last_recorded_samples = 0
         self.__duration_ms = None
+
+    def set_sample_period_ms(self, sample_period_ms: int) -> None:
+        if sample_period_ms < MIN_SAMPLE_PERIOD_MS:
+            raise ValueError("sample_period_ms is too small")
+
+        if sample_period_ms > MAX_SAMPLE_PERIOD_MS:
+            raise ValueError("sample_period_ms is too large")
+
+        self.__sample_period_ms = sample_period_ms
 
     async def start(
             self,

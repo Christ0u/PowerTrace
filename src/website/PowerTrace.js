@@ -1,5 +1,9 @@
+const MIN_SAMPLE_PERIOD_MS = 10;
+const MAX_SAMPLE_PERIOD_MS = 5000;
+
 const startButton = document.getElementById("start-button");
 const stopButton = document.getElementById("stop-button");
+const samplePeriodInput = document.getElementById("sample-period-input");
 
 const statusText = document.getElementById("status-text");
 const recordingText = document.getElementById("recording-text");
@@ -13,6 +17,29 @@ const messageText = document.getElementById("message-text");
 
 async function parseJsonResponse(response) {
     return await response.json();
+}
+
+function clampSamplePeriod(value) {
+    if (Number.isNaN(value)) {
+        return MIN_SAMPLE_PERIOD_MS;
+    }
+
+    if (value < MIN_SAMPLE_PERIOD_MS) {
+        return MIN_SAMPLE_PERIOD_MS;
+    }
+
+    if (value > MAX_SAMPLE_PERIOD_MS) {
+        return MAX_SAMPLE_PERIOD_MS;
+    }
+
+    return value;
+}
+
+function getValidatedSamplePeriod() {
+    const rawValue = parseInt(samplePeriodInput.value, 10);
+    const clampedValue = clampSamplePeriod(rawValue);
+    samplePeriodInput.value = String(clampedValue);
+    return clampedValue;
 }
 
 function updateStatusView(data) {
@@ -29,6 +56,7 @@ function updateStatusView(data) {
 
     startButton.disabled = data.is_recording;
     stopButton.disabled = !data.is_recording;
+    samplePeriodInput.disabled = data.is_recording;
 }
 
 async function fetchStatus() {
@@ -50,8 +78,17 @@ async function fetchStatus() {
 
 async function startRecording() {
     try {
+        const samplePeriodMs = getValidatedSamplePeriod();
+
+        const body = new URLSearchParams();
+        body.append("sample_period_ms", String(samplePeriodMs));
+
         const response = await fetch("/api/acquisition/start", {
-            method: "POST"
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: body.toString()
         });
 
         const payload = await parseJsonResponse(response);
@@ -88,10 +125,19 @@ async function stopRecording() {
     }
 }
 
-startButton.addEventListener("click", startRecording);
-stopButton.addEventListener("click", stopRecording);
+samplePeriodInput.addEventListener("change", () => {
+    getValidatedSamplePeriod();
+});
+
+startButton.addEventListener("click", () => {
+    void startRecording();
+});
+
+stopButton.addEventListener("click", () => {
+    void stopRecording();
+});
 
 void fetchStatus();
-setInterval(()=>{
+setInterval(() => {
     void fetchStatus();
-},1000)
+}, 1000);
