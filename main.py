@@ -14,24 +14,19 @@ wifi.create_open_access_point(SSID)
 
 
 async def main() -> None:
-    # sdcard = SDCardCustom()
-    # logger = MeasurementLogger(sdcard)
-    # ina228 = INA228Custom()
-    #
-    # acquisition_service = AcquisitionService(
-    #     ina228=ina228,
-    #     logger=logger,
-    #     sample_period_ms=50
-    # )
-    #
-    # await acquisition_service.start(duration_ms=30_000, truncate=True)
-    #
-    # while acquisition_service.is_recording():
-    #     print(acquisition_service.get_status())
-    #     await asyncio.sleep_ms(1000)
-    #
-    # print("Finished:", acquisition_service.get_status())
+    sdcard = SDCardCustom()
+    logger = MeasurementLogger(sdcard)
+    ina228 = INA228Custom()
 
+    acquisition_service = AcquisitionService(
+        ina228=ina228,
+        logger=logger,
+        sample_period_ms=50
+    )
+
+    PowerTrace.configure_acquisition_service(acquisition_service)
+
+    print("Starting web server...")
     await PowerTrace.application.start_server(port=int(WEB_SERVER_PORT))
 
 if __name__ == "__main__":

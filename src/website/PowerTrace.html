@@ -2,9 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerTrace</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    Test123456789
+    <main class="container">
+        <h1>PowerTrace</h1>
+        <p class="subtitle">Measurement acquisition control panel</p>
+
+        <section class="actions">
+            <button id="start-button" type="button">Start recording</button>
+            <button id="stop-button" type="button">Stop recording</button>
+        </section>
+
+        <section class="status-panel">
+            <h2>Status</h2>
+
+            <p><strong>State:</strong> <span id="status-text">Loading...</span></p>
+            <p><strong>Recording:</strong> <span id="recording-text">No</span></p>
+            <p><strong>Stop requested:</strong> <span id="stop-requested-text">No</span></p>
+            <p><strong>Sample period:</strong> <span id="sample-period-text">0</span> ms</p>
+            <p><strong>Target duration:</strong> <span id="target-duration-text">None</span></p>
+            <p><strong>Recorded samples:</strong> <span id="samples-text">0</span></p>
+            <p><strong>Duration:</strong> <span id="duration-text">0</span> ms</p>
+            <p><strong>Last error:</strong> <span id="error-text">None</span></p>
+            <p><strong>Server message:</strong> <span id="message-text">Ready</span></p>
+        </section>
+    </main>
+
+    <script src="/script.js"></script>
 </body>
 </html>
