@@ -3,7 +3,7 @@ import ujson
 
 from src.classes.AcquisitionService import AcquisitionService
 from src.config.config import WEBSITE_NAME, WEB_SERVER_ROOT_PATH, WEB_SERVER_STYLE_PATH, WEB_SERVER_SCRIPT_PATH, \
-    MIN_SAMPLE_PERIOD_MS, MAX_SAMPLE_PERIOD_MS
+    MIN_SAMPLE_PERIOD_MS, MAX_SAMPLE_PERIOD_MS, MIN_DURATION_S, MAX_DURATION_S
 from src.libs.microdot import Microdot, Response
 from src.libs.utemplate import Template
 
@@ -54,6 +54,36 @@ def parse_sample_period_ms(request) -> int:
         )
 
     return sample_period_ms
+
+
+def parse_duration_ms(request) -> int | None:
+    recording_mode = request.form.get("recording_mode")
+
+    if recording_mode is None:
+        raise ValueError("Missing recording_mode")
+
+    if recording_mode == "manual":
+        return None
+
+    if recording_mode != "timed":
+        raise ValueError("Invalid recording_mode")
+
+    raw_value = request.form.get("duration_seconds")
+
+    if raw_value is None:
+        raise ValueError("Missing duration_seconds")
+
+    duration_seconds = int(raw_value)
+
+    if duration_seconds < MIN_DURATION_S:
+        raise ValueError(
+            f"duration_seconds is too small (min: {MIN_DURATION_S})")
+
+    if duration_seconds > MAX_DURATION_S:
+        raise ValueError(
+            f"duration_seconds is too large (max: {MAX_DURATION_S})")
+
+    return duration_seconds * 1000
 
 
 def generate_webpage() -> str:
@@ -143,9 +173,11 @@ async def acquisition_start(request) -> Response:
             )
 
         sample_period_ms = parse_sample_period_ms(request)
+        duration_ms = parse_duration_ms(request)
+
         acquisition_service.set_sample_period_ms(sample_period_ms)
 
-        await acquisition_service.start(duration_ms=None, truncate=True)
+        await acquisition_service.start(duration_ms=duration_ms, truncate=True)
 
         return get_response_from_json(
             payload={

@@ -30,3 +30,19 @@ input[type="number"] {
     color: #555555;
     font-size: 14px;
 }
+
+.recording-mode-group {
+    margin-top: 16px;
+    margin-bottom: 16px;
+    padding: 12px;
+    border: 1px solid #cccccc;
+}
+
+.recording-mode-group label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.hidden {
+    display: none;
+}

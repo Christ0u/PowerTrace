@@ -12,19 +12,57 @@
         <p class="subtitle">Measurement acquisition control panel</p>
 
         <section class="config-panel">
-            <h2>Acquisition configuration</h2>
+        <h2>Acquisition configuration</h2>
 
-            <label for="sample-period-input">Sampling period (ms)</label>
+        <label for="sample-period-input">Sampling period (ms)</label>
+        <input
+            id="sample-period-input"
+            name="sample_period_ms"
+            type="number"
+            min="10"
+            max="5000"
+            step="1"
+            value="50"
+        >
+        <p class="hint">Allowed range: 10 ms to 5000 ms.</p>
+
+        <fieldset class="recording-mode-group">
+            <legend>Recording mode</legend>
+
+            <label>
+                <input
+                    type="radio"
+                    name="recording_mode"
+                    value="manual"
+                    checked
+                >
+                Manual stop
+            </label>
+
+            <label>
+                <input
+                    type="radio"
+                    name="recording_mode"
+                    value="timed"
+                >
+                Timed recording
+            </label>
+        </fieldset>
+
+        <div id="duration-field-container" class="hidden">
+            <label for="duration-seconds-input">Duration (s)</label>
             <input
-                id="sample-period-input"
+                id="duration-seconds-input"
+                name="duration_seconds"
                 type="number"
-                min="10"
-                max="5000"
+                min="1"
+                max="3600"
                 step="1"
-                value="50"
+                value="30"
             >
-            <p class="hint">Allowed range: 10 ms to 5000 ms.</p>
-        </section>
+            <p class="hint">Used only for timed recording. Allowed range: 1 s to 3600 s.</p>
+        </div>
+    </section>
 
         <section class="actions">
             <button id="start-button" type="button">Start recording</button>
