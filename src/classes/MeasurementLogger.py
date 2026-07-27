@@ -4,8 +4,7 @@ import ubinascii
 
 from src.classes.SDCardCustom import SDCardCustom
 from src.classes.RingBuffer import RingBuffer
-from src.config.config import MEASUREMENT_LOGGER_BUFFER_SIZE, MEASUREMENT_LOGGER_DECIMAL_PRECISION, SDCARD_ROOT_PATH, \
-    MEASUREMENT_LOGGER_LOGS_DIRECTORY
+from src.config.config import MEASUREMENT_LOGGER_BUFFER_SIZE, SDCARD_ROOT_PATH, MEASUREMENT_LOGGER_LOGS_DIRECTORY, RECORD_FORMAT
 
 
 class MeasurementLogger:
@@ -17,11 +16,17 @@ class MeasurementLogger:
 
         self.__sdcard = sdcard
         self.__file_path = file_path
-        self.__buffer = RingBuffer(buffer_size)
+        self.__buffer = RingBuffer(
+            capacity=buffer_size,
+            record_format=RECORD_FORMAT)
         self.__is_started = False
+        self.__file = None
 
     def set_file_path(self, file_path: str) -> None:
         self.__file_path = file_path
+
+    def get_file_path(self) -> str | None:
+        return self.__file_path
 
     @staticmethod
     def __generate_id(n_bytes: int = 16) -> str:
@@ -34,7 +39,7 @@ class MeasurementLogger:
                 f"/measurements_"
                 f"{time.ticks_ms()}_"
                 f"{MeasurementLogger.__generate_id()}"
-                f".csv")
+                f".bin")
 
     @staticmethod
     def __get_directory_path(file_path: str) -> str:
@@ -45,38 +50,24 @@ class MeasurementLogger:
 
         return "/".join(parts[:-1])
 
-    @staticmethod
-    def __format_float(
-            value: float | int,
-            decimals: int = MEASUREMENT_LOGGER_DECIMAL_PRECISION) -> str:
-
-        return f"{value:.{decimals}f}"
-
-    @staticmethod
-    def __build_csv_line(timestamp: int,
-                         bus_voltage: float | int,
-                         current: float | int) -> str:
-
-        result = ",".join([
-            str(timestamp),
-            MeasurementLogger.__format_float(bus_voltage),
-            MeasurementLogger.__format_float(current)
-        ])
-
-        return result
-
     def start(self, truncate: bool = True) -> None:
+        if self.__is_started:
+            raise Exception("Measurement logger is already started")
+
         if self.__file_path is None:
             raise Exception("No measurement file path defined.")
 
         directory_path = self.__get_directory_path(self.__file_path)
         self.__sdcard.create_directory(directory_path)
-        self.__sdcard.create_file(self.__file_path, truncate=truncate)
 
-        if truncate or self.__sdcard.get_file_size(self.__file_path) == 0:
-            self.__sdcard.append_line(
-                self.__file_path,
-                "timestamp_ms, bus_voltage_V, current_A")
+        if truncate:
+            mode = "wb"
+        else:
+            mode = "ab"
+
+        self.__file = open(self.__file_path, mode)
+
+        self.__buffer.clear()
 
         self.__is_started = True
 
@@ -87,37 +78,42 @@ class MeasurementLogger:
         if not self.__is_started:
             raise Exception("Measurement logger has not been started")
 
-        line = self.__build_csv_line(
-            timestamp,
-            bus_voltage,
-            current)
-
-        if not self.__buffer.push(line):
+        if not self.__buffer.push(
+                int(timestamp),
+                float(bus_voltage),
+                float(current)):
             self.flush()
 
-            if not self.__buffer.push(line):
-                raise Exception("Unable to push line after buffer flush")
+            if not self.__buffer.push(
+                    int(timestamp),
+                    float(bus_voltage),
+                    float(current)):
+                raise Exception("Unable to push record after buffer flush")
 
     def flush(self) -> None:
         if not self.__is_started:
             raise Exception("Measurement logger has not been started")
 
-        if self.__file_path is None:
-            raise Exception("No measurement file path defined")
-
-        lines: list[str] = []
+        if self.__file is None:
+            raise Exception("No measurement file is open")
 
         while not self.__buffer.is_empty():
-            line = self.__buffer.pop()
+            chunk = self.__buffer.pop_bytes()
 
-            if line is not None:
-                lines.append(line)
+            if chunk is not None:
+                self.__file.write(chunk)
 
-        self.__sdcard.append_lines(self.__file_path, lines)
+        self.__file.flush()
 
     def stop(self) -> None:
         if not self.__is_started:
             return
 
-        self.flush()
-        self.__is_started = False
+        try:
+            self.flush()
+        finally:
+            if self.__file is not None:
+                self.__file.close()
+                self.__file = None
+
+            self.__is_started = False
