@@ -1,27 +1,35 @@
 import os
-from machine import SoftSPI, Pin
+from machine import SPI, Pin
 from src.libs.sdcard import SDCard
 
-from src.config.config import SPI_BAUDRATE
+from src.config.config import SPI_BAUDRATE, SPI_ID
 from src.config.pins import PIN_SDCARD_SCK, PIN_SDCARD_MISO, PIN_SDCARD_MOSI, PIN_SDCARD_CS
 
 
 class SDCardCustom:
     def __init__(
             self,
+            spi_id: int = SPI_ID,
             baudrate: int = SPI_BAUDRATE,
             pin_sdcard_sck: int = PIN_SDCARD_SCK,
             pin_sdcard_miso: int = PIN_SDCARD_MISO,
             pin_sdcard_mosi: int = PIN_SDCARD_MOSI,
             pin_sdcard_cs: int = PIN_SDCARD_CS):
 
-        spi_interface: SoftSPI = SoftSPI(
+        spi_interface: SPI = SPI(
+            spi_id,
             baudrate=baudrate,
+            polarity=0,
+            phase=0,
+            bits=8,
+            firstbit=SPI.MSB,
             sck=Pin(pin_sdcard_sck),
             miso=Pin(pin_sdcard_miso),
             mosi=Pin(pin_sdcard_mosi)
         )
+
         chip_select: Pin = Pin(pin_sdcard_cs, Pin.OUT)
+        chip_select.value(1)
 
         self.__sdcard_interface: SDCard = SDCard(spi_interface, chip_select)
 
