@@ -1,22 +1,8 @@
 from machine import I2C, Pin
-from ucollections import namedtuple
 from src.libs.ina228 import INA228
 
 from src.config.config import I2C_FREQUENCY, INA_228_MAX_EXPECTED_CURRENT, INA_228_SHUNT_RESISTANCE
 from src.config.pins import PIN_INA228_SCL, PIN_INA228_SDA
-
-INA228Measurements = namedtuple(
-    "INA228Measurements",
-    (
-        "bus_voltage",
-        "shunt_voltage",
-        "current",
-        "power",
-        "charge",
-        "energy",
-        "internal_temperature"
-    )
-)
 
 
 class INA228Custom:
@@ -61,14 +47,3 @@ class INA228Custom:
 
     def get_internal_temperature(self) -> float | int:
         return self.__ina228_interface.get_temp_voltage()
-
-    def get_measurements(self):
-        return INA228Measurements(
-            bus_voltage=self.get_bus_voltage(),
-            shunt_voltage=self.get_shunt_voltage(),
-            current=self.get_current(),
-            power=self.get_power(),
-            charge=self.get_charge(),
-            energy=self.get_energy(),
-            internal_temperature=self.get_internal_temperature()
-        )

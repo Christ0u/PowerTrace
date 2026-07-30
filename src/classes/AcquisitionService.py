@@ -45,6 +45,7 @@ class AcquisitionService:
             self,
             duration_ms: int | None = 30_000,
             truncate: bool = True) -> None:
+
         if self.__task is not None and not self.__task.done():
             raise Exception("Acquisition is already running")
 
@@ -65,26 +66,44 @@ class AcquisitionService:
 
     async def __run(self, duration_ms: int | None, truncate: bool) -> None:
         self.__logger.start(truncate=truncate)
-        start_time = time.ticks_ms()
+
+        start_time = time.ticks_ms() #12
+        next_deadline = start_time   #12
 
         try:
             while not self.__stop_requested:
-                now = time.ticks_ms()
-                elapsed = time.ticks_diff(now, start_time)
+                now = time.ticks_ms() # 12
+                remaining = time.ticks_diff(next_deadline, now) 
+
+                if remaining > 0:
+                    await asyncio.sleep_ms(remaining)
+                    continue
+
+                elapsed = time.ticks_diff(next_deadline, start_time)
 
                 if duration_ms is not None and elapsed >= duration_ms:
                     break
 
-                measurements = self.__ina228.get_measurements()
+                bus_voltage = self.__ina228.get_bus_voltage()
+                current = self.__ina228.get_current()
 
                 self.__logger.log(
                     timestamp=elapsed,
-                    bus_voltage=measurements.bus_voltage,
-                    current=measurements.current
+                    bus_voltage=bus_voltage,
+                    current=current
                 )
 
                 self.__last_recorded_samples += 1
-                await asyncio.sleep_ms(self.__sample_period_ms)
+
+                next_deadline = time.ticks_add(
+                    next_deadline, self.__sample_period_ms)
+
+                now = time.ticks_ms()
+                while time.ticks_diff(
+                        now, next_deadline) >= self.__sample_period_ms:
+                    next_deadline = time.ticks_add(
+                        next_deadline, self.__sample_period_ms
+                    )
 
         except asyncio.CancelledError:
             self.__stop_requested = True

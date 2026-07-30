@@ -13,17 +13,12 @@ wifi: WiFiCustom = WiFiCustom()
 wifi.create_open_access_point(SSID)
 
 
-async def main() -> None:
-    ina228: INA228Custom = INA228Custom()
-    sdcard: SDCardCustom = SDCardCustom()
+async def main():
+    sdcard = SDCardCustom()
+    ina228 = INA228Custom()
+    logger = MeasurementLogger(sdcard=sdcard)
 
-    logger: MeasurementLogger = MeasurementLogger(sdcard)
-
-    acquisition_service: AcquisitionService = AcquisitionService(
-        ina228=ina228,
-        logger=logger,
-        sample_period_ms=50
-    )
+    acquisition_service = AcquisitionService(ina228=ina228, logger=logger)
 
     PowerTrace.configure_acquisition_service(acquisition_service)
 
