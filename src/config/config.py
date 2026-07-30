@@ -1,4 +1,5 @@
 SPI_BAUDRATE: int = 20_000_000
+SPI_ID: int = 1
 I2C_FREQUENCY: int = 400_000
 
 INA_228_SHUNT_RESISTANCE: float | int = 0.100
