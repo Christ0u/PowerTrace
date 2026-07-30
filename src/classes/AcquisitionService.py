@@ -46,8 +46,6 @@ class AcquisitionService:
             duration_ms: int | None = 30_000,
             truncate: bool = True) -> None:
 
-        # start = time.ticks_ms()
-
         if self.__task is not None and not self.__task.done():
             raise Exception("Acquisition is already running")
 
@@ -59,55 +57,53 @@ class AcquisitionService:
         self.__duration_ms = duration_ms
         self.__status = self.STATUS_RECORDING
 
-        # start = trace_step("Définition des valeurs de status", start)
-
         file_path = self.__logger.generate_file_path()
         self.__logger.set_file_path(file_path)
-
-        # start = trace_step("Définition du chemin d'accès du fichier bin", start)
 
         self.__task = asyncio.create_task(
             self.__run(duration_ms=duration_ms, truncate=truncate)
         )
 
     async def __run(self, duration_ms: int | None, truncate: bool) -> None:
-        # start = time.ticks_ms()
-
-        # print(f"Début __run() {time.ticks_diff(time.ticks_ms(), start)}")
-
-        # print(f"Début lancement du logger {time.ticks_diff(time.ticks_ms(), start)}")
         self.__logger.start(truncate=truncate)
-        # print(f"Fin lancement du logger {time.ticks_diff(time.ticks_ms(), start)}")
-        start_time = time.ticks_ms()
+
+        start_time = time.ticks_ms() #12
+        next_deadline = start_time   #12
 
         try:
-            # print(f"Début boucle while {time.ticks_diff(time.ticks_ms(), start)}")
-
             while not self.__stop_requested:
-                now = time.ticks_ms()
-                elapsed = time.ticks_diff(now, start_time)
+                now = time.ticks_ms() # 12
+                remaining = time.ticks_diff(next_deadline, now) 
+
+                if remaining > 0:
+                    await asyncio.sleep_ms(remaining)
+                    continue
+
+                elapsed = time.ticks_diff(next_deadline, start_time)
 
                 if duration_ms is not None and elapsed >= duration_ms:
                     break
-                # print("--------------")
-                # print(f"Début get_measurements() {time.ticks_diff(time.ticks_ms(), start)}")
+
                 bus_voltage = self.__ina228.get_bus_voltage()
                 current = self.__ina228.get_current()
 
-                # print(f"Fin get_measurements() {time.ticks_diff(time.ticks_ms(), start)}")
-
-                # print(f"Début du log {time.ticks_diff(time.ticks_ms(), start)}")
                 self.__logger.log(
                     timestamp=elapsed,
                     bus_voltage=bus_voltage,
                     current=current
                 )
-                # print(f"Fin du log {time.ticks_diff(time.ticks_ms(), start)}")
 
                 self.__last_recorded_samples += 1
-                await asyncio.sleep_ms(self.__sample_period_ms)
 
-            # print(f"Fin boucle while {time.ticks_diff(time.ticks_ms(), start)}")
+                next_deadline = time.ticks_add(
+                    next_deadline, self.__sample_period_ms)
+
+                now = time.ticks_ms()
+                while time.ticks_diff(
+                        now, next_deadline) >= self.__sample_period_ms:
+                    next_deadline = time.ticks_add(
+                        next_deadline, self.__sample_period_ms
+                    )
 
         except asyncio.CancelledError:
             self.__stop_requested = True
