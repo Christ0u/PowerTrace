@@ -2,15 +2,10 @@
 #
 #   Driver to INA228 by @megalloid
 #
-#   Need to fix:
-#   1) Value of VSHUHT is needed to multiply to 10 that get correct value
-#
 ##############################################################
 
 
 import time
-
-from machine import I2C, Pin
 
 # INA228 Address
 INA228_PORT = 1
@@ -20,7 +15,7 @@ INA228_SHUNT_TEMPCO_VALUE = 0
 
 #############################################################
 # INA228 Reset bytes for CONFIG [15] / [14]
-# Decription:
+# Description:
 # RST - Generates a system reset that is the same as power-on reset.
 # RSTACC - Resets the contents of accumulation registers ENERGY and CHARGE to 0
 #############################################################
@@ -119,8 +114,8 @@ INA228_VSHCT_CONV_TIME = 0x05
 INA228_VSHCT_CONV_TIME_NBIT = 0x06
 
 #############################################################
-# INA228 ADC conversion time of temperatrure meas.
-# Description: Sets the conversion time of the temperatrure measurement
+# INA228 ADC conversion time of temperature meas.
+# Description: Sets the conversion time of the temperature measurement
 #
 # Values:
 # 0x00h = 50 μs
@@ -198,27 +193,65 @@ class INA228:
             i2c=None,
             address=INA228_ADDRESS,
             shunt_ohms=INA228_SHUNT_OHMS,
-            max_expected_current=1.0):
+            max_expected_current=1.0,
+            adc_range: int = INA228_ADCRANGE,
+            v_bus_conversion_time: int = INA228_VBUS_CONV_TIME,
+            v_shunt_conversion_time: int = INA228_VSHCT_CONV_TIME,
+            avg: int = INA228_ADC_AVG,
+            current_lsb: float | int | None = None):
+
+        if adc_range not in (0, 1):
+            raise ValueError("adc_range must be 0 or 1")
+
+        if v_bus_conversion_time not in range(8):
+            raise ValueError("v_bus_conversion_time must be between 0 and 7")
+
+        if v_shunt_conversion_time not in range(8):
+            raise ValueError("v_shunt_conversion_time must be between 0 and 7")
+
+        if avg not in range(8):
+            raise ValueError("avg must be between 0 and 7")
+
+        if shunt_ohms <= 0:
+            raise ValueError("shunt_ohms must be > 0")
+
+        if max_expected_current <= 0:
+            raise ValueError("max_expected_current must be > 0")
+
+        if current_lsb is not None and current_lsb <= 0:
+            raise ValueError("current_lsb must be > 0")
 
         self._address = address
         self._i2c = i2c
         self._shunt_ohms = shunt_ohms
         self._max_expected_current = max_expected_current
+        self._adc_range = adc_range
+        self._v_bus_conversion_time = v_bus_conversion_time
+        self._v_shunt_conversion_time = v_shunt_conversion_time
+        self._avg = avg
 
-    def __convert2comp2float(self, twocompdata, nrofbit, factor):
+        if current_lsb is None:
+            self._current_lsb = self._max_expected_current / 524288.0
+        else:
+            self._current_lsb = current_lsb
+
+    @staticmethod
+    def __convert2comp2float(twocompdata, nrofbit, factor):
         isnegative = 1
         isnegative = (isnegative << (nrofbit - 1))
         dietemp = twocompdata
-        if (dietemp > isnegative):
+        if dietemp > isnegative:
             dietemp = (dietemp - (2 * isnegative)) * factor
         else:
             dietemp = (dietemp * factor)
         return dietemp
 
-    def __binary_as_string(self, register_value):
+    @staticmethod
+    def __binary_as_string(register_value):
         return bin(register_value)[2:].zfill(16)
 
-    def __to_bytes(self, register_value):
+    @staticmethod
+    def __to_bytes(register_value):
         return [(register_value >> 8) & 0xFF, register_value & 0xFF]
 
     def read_register40(self, register):
@@ -250,8 +283,8 @@ class INA228:
         # self._i2c.write_word_data(self._address, register, register_value)
 
     def get_current_lsb(self):
-        return self._max_expected_current / 524288.0
-        # if (INA228_ADCRANGE == 0):
+        return self._current_lsb
+        # if self._adc_range == 0:
         #     temp = 163.84e-3
         # else:
         #     temp = 40.96e-3
@@ -259,11 +292,10 @@ class INA228:
         # return current_lsb
 
     def get_shunt_conv_factor(self):
-        if (INA228_ADCRANGE == 0):
-            shunt_conv_factor = 1.25e-6
+        if self._adc_range == 0:
+            return 1.25e-6
         else:
-            shunt_conv_factor = 5.0e-6
-        return shunt_conv_factor
+            return 5.0e-6
 
     def reset_all(self):
         config = self.read_register16(self.__INA228_CONFIG)
@@ -284,7 +316,7 @@ class INA228:
         config = config | (
             INA228_CONVERSION_DELAY << INA228_CONVDLY_NBIT) | (
             INA228_TEMP_COMP << INA228_TEMPCOMP_NBIT) | (
-            INA228_ADCRANGE << INA228_ADCRANGE_NBIT)
+            self._adc_range << INA228_ADCRANGE_NBIT)
         self.write_register16(self.__INA228_CONFIG, config)
 
     def set_adc_config(self):
@@ -292,20 +324,27 @@ class INA228:
         config = self.read_register16(self.__INA228_ADC_CONFIG)
         config = config | (
             INA228_ADC_MODE << INA228_ADC_MODE_NBIT) | (
-            INA228_VBUS_CONV_TIME << INA228_VBUS_CONV_TIME_NBIT) | (
-            INA228_VSHCT_CONV_TIME << INA228_VSHCT_CONV_TIME_NBIT) | (
+            self._v_bus_conversion_time << INA228_VBUS_CONV_TIME_NBIT) | (
+            self._v_shunt_conversion_time << INA228_VSHCT_CONV_TIME_NBIT) | (
                 INA228_VTCT_CONV_TIME << INA228_VTCT_CONV_TIME_NBIT) | (
-                    INA228_ADC_AVG << INA228_AVG_NBIT)
+                    self._avg << INA228_AVG_NBIT)
         self.write_register16(self.__INA228_ADC_CONFIG, config)
 
     def shunt_calib(self):
         calib_value = int(
             13107.2e6 *
-            self.get_current_lsb() *
+            self._current_lsb *
             self._shunt_ohms)
 
-        if INA228_ADCRANGE == 1:
+        if self._adc_range == 1:
             calib_value *= 4
+
+        if calib_value <= 0:
+            raise ValueError("SHUNT_CAL computed value must be > 0")
+
+        if calib_value > 0x7FFF:
+            raise ValueError(
+                "SHUNT_CAL overflow: computed value exceeds 15-bit register field")
 
         self.write_register16(self.__INA228_SHUNT_CAL, calib_value)
 
@@ -329,17 +368,16 @@ class INA228:
 
     def get_shunt_voltage(self):
 
-        if (INA228_ADCRANGE == 1):
+        if self._adc_range == 0:
             conversion_factor = 312.5e-9  # nV/LSB
         else:
             conversion_factor = 78.125e-9  # nV/LSB
 
         raw = self.read_register24(self.__INA228_VSHUNT)
-        vshunt = (
-            self.__convert2comp2float(
-                raw >> 4,
-                20,
-                conversion_factor)) * 10  # Find and fix *10
+        vshunt = INA228.__convert2comp2float(
+            raw >> 4,
+            20,
+            conversion_factor)  # Find and fix *10
         # print('Shunt voltage: ', vshunt)
         return vshunt
 
@@ -347,20 +385,20 @@ class INA228:
 
         conversion_factor = 195.3125e-6  # uV/LSB
         raw = self.read_register24(self.__INA228_VBUS)
-        vbus = self.__convert2comp2float(raw >> 4, 20, conversion_factor)
+        vbus = INA228.__convert2comp2float(raw >> 4, 20, conversion_factor)
         # print('VBUS voltage: ', vbus)
         return vbus
 
     def get_temp_voltage(self):
         conversion_factor = 7.8125e-3
         raw = self.read_register16(self.__INA228_DIETEMP)
-        temp = self.__convert2comp2float(raw, 16, conversion_factor)
+        temp = INA228.__convert2comp2float(raw, 16, conversion_factor)
         # print('Die temp: ', temp)
         return temp
 
     def get_current(self):
         raw = self.read_register24(self.__INA228_CURRENT)
-        current = self.__convert2comp2float(
+        current = INA228.__convert2comp2float(
             raw >> 4, 20, self.get_current_lsb())
         return current
 
@@ -386,78 +424,78 @@ class INA228:
 
     def get_diag_alerts(self, alert):
         raw = self.read_register16(self.__INA228_DIAG_ALRT)
-        if (alert == INA228_ALERT_ALATCH):
+        if alert == INA228_ALERT_ALATCH:
             if (raw & 0x1) == 0x0:
                 print(
                     'MEMSTAT: Checksum error is detected in the device trim memory space')
                 return 1
-        elif (alert == INA228_ALERT_CNVRF):
+        elif alert == INA228_ALERT_CNVRF:
             if (raw & 0x2) == 0x1:
                 print('CNVRF: Conversion is completed')
-        elif (alert == INA228_ALERT_BUSUL):
+        elif alert == INA228_ALERT_BUSUL:
             if (raw & 0x4) == 0x1:
                 print(
                     'BUSUL: Bus voltage measurement falls below the threshold limit in the bus under-limit register')
-        elif (alert == INA228_ALERT_BUSOL):
+        elif alert == INA228_ALERT_BUSOL:
             if (raw & 0x8) == 0x1:
                 print(
                     'BUSOL: Bus voltage measurement exceeds the threshold limit in the bus over-limit register')
 
-        elif (alert == INA228_ALERT_SHNTUL):
+        elif alert == INA228_ALERT_SHNTUL:
             if (raw & 0x10) == 0x1:
                 print(
                     'SHNTUL: Shunt voltage measurement falls below the threshold limit in the shunt under-limit register')
 
-        elif (alert == INA228_ALERT_SHNTOL):
+        elif alert == INA228_ALERT_SHNTOL:
             if (raw & 0x40) == 0x1:
                 print(
                     'SHNTOL: Shunt voltage measurement exceeds the threshold limit in the shunt over-limit register')
 
-        elif (alert == INA228_ALERT_TMPOL):
+        elif alert == INA228_ALERT_TMPOL:
             if (raw & 0x80) == 0x1:
                 print(
                     'TMPOL: Temperature measurement exceeds the threshold limit in the temperature over-limit register')
 
-        elif (alert == INA228_ALERT_MATHOF):
+        elif alert == INA228_ALERT_MATHOF:
             if (raw & 0x100) == 0x1:
                 print('MATHOF: Arithmetic operation resulted in an overflow error')
 
-        elif (alert == INA228_ALERT_CHARGEOF):
+        elif alert == INA228_ALERT_CHARGEOF:
             if (raw & 0x200) == 0x1:
                 print('CHARGEOF: 40 bit CHARGE register has overflowed')
 
-        elif (alert == INA228_ALERT_ENERGYOF):
+        elif alert == INA228_ALERT_ENERGYOF:
             if (raw & 0x400) == 0x1:
                 print('ENERGYOF: 40 bit ENERGY register has overflowed')
 
-        elif (alert == INA228_ALERT_APOL):
+        elif alert == INA228_ALERT_APOL:
             if (raw & 0x800) == 0x1:
                 print('APOL: Alert pin polarity inverted (active-high, open-drain)')
             else:
                 print('APOL: Alert pin polarity normale (active-low, open-drain)')
 
-        elif (alert == INA228_ALERT_SLOWALERT):
+        elif alert == INA228_ALERT_SLOWALERT:
             if (raw & 0x2000) == 0x1:
                 print(
                     'SLOWALERT: ALERT function is asserted on the completed averaged value. ALERT comparison on averaged value')
             else:
                 print('SLOWALERT: ALERT comparison on non-averaged (ADC) value')
 
-        elif (alert == INA228_ALERT_CNVR):
+        elif alert == INA228_ALERT_CNVR:
             if (raw & 0x4000) == 0x1:
                 print(
                     'CNVR: Alert pin to be asserted when the Conversion Ready Flag (bit 1) is asserted, indicating that a conversion cycle has completed. Enables conversion ready flag on ALERT pin')
             else:
                 print('CNVR: Disable conversion ready flag on ALERT pin')
 
-        elif (alert == INA228_ALERT_ALATCH):
+        elif alert == INA228_ALERT_ALATCH:
             if (raw & 0x8000) == 0x1:
                 print('ALATCH: Latched')
             else:
                 print('ALATCH: Transparent')
 
     def set_shunt_overvoltage(self, value):
-        if (value >= 0):
+        if value >= 0:
             data = (value * INA228_SHUNT_OHMS) / self.get_shunt_conv_factor()
         else:
             value_temp = value * (-1)
@@ -470,7 +508,7 @@ class INA228:
         self.write_register16(self.__INA228_SOVL, data)
 
     def set_shunt_undervoltage(self, value):
-        if (value >= 0):
+        if value >= 0:
             data = (value * INA228_SHUNT_OHMS) / self.get_shunt_conv_factor()
         else:
             value_temp = value * (-1)

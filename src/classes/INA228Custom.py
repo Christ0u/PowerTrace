@@ -12,7 +12,12 @@ class INA228Custom:
             pin_ina228_scl: int = PIN_INA228_SCL,
             frequency: int = I2C_FREQUENCY,
             shunt_resistance: float | int = INA_228_SHUNT_RESISTANCE,
-            max_expected_current: float | int = INA_228_MAX_EXPECTED_CURRENT):
+            max_expected_current: float | int = INA_228_MAX_EXPECTED_CURRENT,
+            adc_range: int = 0,
+            v_bus_conversion_time: int = 0x05,
+            v_shunt_conversion_time: int = 0x05,
+            avg: int = 0x03,
+            current_lsb: float | int | None = None):
 
         i2c = I2C(
             id=1,
@@ -23,7 +28,12 @@ class INA228Custom:
         self.__ina228_interface = INA228(
             i2c=i2c,
             shunt_ohms=shunt_resistance,
-            max_expected_current=max_expected_current)
+            max_expected_current=max_expected_current,
+            adc_range=adc_range,
+            v_bus_conversion_time=v_bus_conversion_time,
+            v_shunt_conversion_time=v_shunt_conversion_time,
+            avg=avg,
+            current_lsb=current_lsb)
 
         self.__ina228_interface.configure()
 
