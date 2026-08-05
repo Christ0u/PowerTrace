@@ -72,6 +72,81 @@
                 Allowed range: 5 ms to 5000 ms.
             </p>
 
+            <details class="sensor-config-group">
+                <summary>INA228 configuration</summary>
+
+                <div class="sensor-config-body">
+                    <div class="form-group">
+                        <label for="adc-range-select">ADC range</label>
+                        <select id="adc-range-select" name="adc_range">
+                            <option value="0">±163.84 mV (higher current range)</option>
+                            <option value="1" selected>±40.96 mV (higher resolution)</option>
+                        </select>
+                        <p class="hint">Selects the shunt voltage range used for current measurement.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="vbusct-select">Bus voltage conversion time</label>
+                        <select id="vbusct-select" name="v_bus_conversion_time">
+                            <option value="0">50 µs</option>
+                            <option value="1">84 µs</option>
+                            <option value="2">150 µs</option>
+                            <option value="3">280 µs</option>
+                            <option value="4">540 µs</option>
+                            <option value="5" selected>1052 µs</option>
+                            <option value="6">2074 µs</option>
+                            <option value="7">4120 µs</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="vshct-select">Shunt voltage conversion time</label>
+                        <select id="vshct-select" name="v_shunt_conversion_time">
+                            <option value="0">50 µs</option>
+                            <option value="1">84 µs</option>
+                            <option value="2">150 µs</option>
+                            <option value="3">280 µs</option>
+                            <option value="4">540 µs</option>
+                            <option value="5" selected>1052 µs</option>
+                            <option value="6">2074 µs</option>
+                            <option value="7">4120 µs</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="avg-select">Averaging</label>
+                        <select id="avg-select" name="avg">
+                            <option value="0" selected>1 sample</option>
+                            <option value="1">4 samples</option>
+                            <option value="2">16 samples</option>
+                            <option value="3">64 samples</option>
+                            <option value="4">128 samples</option>
+                            <option value="5">256 samples</option>
+                            <option value="6">512 samples</option>
+                            <option value="7">1024 samples</option>
+                        </select>
+                        <p class="hint">More averaging reduces noise but slows response.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="current-lsb-input">Current LSB</label>
+                        <div class="input-with-unit">
+                            <input
+                                id="current-lsb-input"
+                                name="current_lsb"
+                                type="number"
+                                min="0.000001"
+                                step="0.000001"
+                                value=""
+                                placeholder="auto"
+                            >
+                            <span>A/bit</span>
+                        </div>
+                        <p class="hint">Leave empty to derive it from max expected current.</p>
+                    </div>
+                </div>
+            </details>
+
         </div>
 
 
@@ -380,7 +455,21 @@
             </div>
 
 
+            <div class="status-item config-item">
 
+                <span>
+                    INA228 config
+                </span>
+
+                <strong id="ina228-config-summary">
+                    Default
+                </strong>
+
+                <small id="ina228-config-detail">
+                    adc_range=1, vbusct=1052 µs, vshct=1052 µs, avg=1, current_lsb=auto
+                </small>
+
+            </div>
 
 
             <div class="status-item error">

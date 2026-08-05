@@ -86,6 +86,35 @@ def parse_duration_ms(request) -> int | None:
     return duration_seconds * 1000
 
 
+def parse_ina228_config(request) -> dict:
+    def parse_int_field(name: str, minimum: int, maximum: int, default: int):
+        raw_value = request.form.get(name)
+        if raw_value is None or raw_value == "":
+            return default
+
+        value = int(raw_value)
+        if value < minimum or value > maximum:
+            raise ValueError(f"{name} is out of range")
+        return value
+
+    def parse_optional_float_field(name: str):
+        raw_value = request.form.get(name)
+        if raw_value is None or raw_value == "":
+            return None
+        value = float(raw_value)
+        if value <= 0:
+            raise ValueError(f"{name} must be > 0")
+        return value
+
+    return {
+        "adc_range": parse_int_field("adc_range", 0, 1, 0),
+        "v_bus_conversion_time": parse_int_field("v_bus_conversion_time", 0, 7, 5),
+        "v_shunt_conversion_time": parse_int_field("v_shunt_conversion_time", 0, 7, 5),
+        "avg": parse_int_field("avg", 0, 7, 3),
+        "current_lsb": parse_optional_float_field("current_lsb"),
+    }
+
+
 def generate_webpage() -> str:
     """
     Render and return the main HTML page.
@@ -174,6 +203,9 @@ async def acquisition_start(request) -> Response:
 
         sample_period_ms = parse_sample_period_ms(request)
         duration_ms = parse_duration_ms(request)
+
+        ina228_config = parse_ina228_config(request)
+        acquisition_service.set_ina228_config(ina228_config)
 
         acquisition_service.set_sample_period_ms(sample_period_ms)
 

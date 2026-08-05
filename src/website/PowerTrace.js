@@ -12,6 +12,14 @@ const durationSecondsInput = document.getElementById("duration-seconds-input");
 const durationFieldContainer = document.getElementById("duration-field-container");
 const recordingModeInputs = document.querySelectorAll('input[name="recording_mode"]');
 
+const adcRangeSelect = document.getElementById("adc-range-select");
+const vbusctSelect = document.getElementById("vbusct-select");
+const vshctSelect = document.getElementById("vshct-select");
+const avgSelect = document.getElementById("avg-select");
+const currentLsbInput = document.getElementById("current-lsb-input");
+const ina228ConfigSummary = document.getElementById("ina228-config-summary");
+const ina228ConfigDetail = document.getElementById("ina228-config-detail");
+
 const statusText = document.getElementById("status-text");
 const recordingText = document.getElementById("recording-text");
 const stopRequestedText = document.getElementById("stop-requested-text");
@@ -108,6 +116,51 @@ function updateStatusView(data) {
     }
 
     durationSecondsInput.disabled = data.is_recording || getSelectedRecordingMode() !== "timed";
+
+    if (data.ina228_config) {
+    const cfg = data.ina228_config;
+
+    ina228ConfigSummary.textContent = "Configured";
+    ina228ConfigDetail.textContent =
+        `adc_range=${cfg.adc_range}, ` +
+        `vbusct=${cfg.v_bus_conversion_time}, ` +
+        `vshct=${cfg.v_shunt_conversion_time}, ` +
+        `avg=${cfg.avg}, ` +
+        `current_lsb=${cfg.current_lsb === null ? "auto" : cfg.current_lsb}`;
+    }else {
+        ina228ConfigSummary.textContent = "Default";
+        ina228ConfigDetail.textContent = "No INA228 configuration available.";
+    }
+}
+
+function getValidatedSelectValue(selectElement, fallbackValue, min, max) {
+    const rawValue = parseInt(selectElement.value, 10);
+
+    if (Number.isNaN(rawValue)) {
+        selectElement.value = String(fallbackValue);
+        return fallbackValue;
+    }
+
+    const clampedValue = clampValue(rawValue, min, max, fallbackValue);
+    selectElement.value = String(clampedValue);
+    return clampedValue;
+}
+
+function getValidatedCurrentLsb() {
+    const raw = currentLsbInput.value.trim();
+
+    if (raw === "") {
+        return null;
+    }
+
+    const value = Number(raw);
+
+    if (!Number.isFinite(value) || value <= 0) {
+        currentLsbInput.value = "";
+        return null;
+    }
+
+    return value;
 }
 
 async function fetchStatus() {
@@ -131,10 +184,23 @@ async function startRecording() {
     try {
         const samplePeriodMs = getValidatedSamplePeriod();
         const recordingMode = getSelectedRecordingMode();
+        const adcRange = getValidatedSelectValue(adcRangeSelect, 0, 0, 1);
+        const vbusct = getValidatedSelectValue(vbusctSelect, 5, 0, 7);
+        const vshct = getValidatedSelectValue(vshctSelect, 5, 0, 7);
+        const avg = getValidatedSelectValue(avgSelect, 3, 0, 7);
+        const currentLsb = getValidatedCurrentLsb();
 
         const body = new URLSearchParams();
         body.append("sample_period_ms", String(samplePeriodMs));
         body.append("recording_mode", recordingMode);
+        body.append("adc_range", String(adcRange));
+        body.append("v_bus_conversion_time", String(vbusct));
+        body.append("v_shunt_conversion_time", String(vshct));
+        body.append("avg", String(avg));
+
+        if (currentLsb !== null) {
+            body.append("current_lsb", String(currentLsb));
+        }
 
         if (recordingMode === "timed") {
             const durationSeconds = getValidatedDurationSeconds();

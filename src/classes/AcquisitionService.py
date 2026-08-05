@@ -15,8 +15,8 @@ class AcquisitionService:
 
     def __init__(
             self,
-            ina228: INA228Custom,
             logger: MeasurementLogger,
+            ina228: INA228Custom | None = None,
             sample_period_ms: int = 200):
 
         self.__ina228 = ina228
@@ -32,6 +32,14 @@ class AcquisitionService:
         self.__last_recorded_samples = 0
         self.__duration_ms = None
 
+        self.__ina228_config = {
+            "adc_range": 0,
+            "v_bus_conversion_time": 5,
+            "v_shunt_conversion_time": 5,
+            "avg": 3,
+            "current_lsb": None,
+        }
+
     def set_sample_period_ms(self, sample_period_ms: int) -> None:
         if sample_period_ms < MIN_SAMPLE_PERIOD_MS:
             raise ValueError("sample_period_ms is too small")
@@ -41,6 +49,30 @@ class AcquisitionService:
 
         self.__sample_period_ms = sample_period_ms
 
+    def __create_ina228(self) -> INA228Custom:
+        return INA228Custom(
+            adc_range=self.__ina228_config["adc_range"],
+            v_bus_conversion_time=self.__ina228_config["v_bus_conversion_time"],
+            v_shunt_conversion_time=self.__ina228_config["v_shunt_conversion_time"],
+            avg=self.__ina228_config["avg"],
+            current_lsb=self.__ina228_config["current_lsb"],
+        )
+
+    def set_ina228_config(self, config: dict) -> None:
+        if config is None:
+            return
+
+        default_config = {
+            "adc_range": 0,
+            "v_bus_conversion_time": 5,
+            "v_shunt_conversion_time": 5,
+            "avg": 3,
+            "current_lsb": None,
+        }
+
+        default_config.update(config)
+        self.__ina228_config = default_config
+
     async def start(
             self,
             duration_ms: int | None = 30_000,
@@ -48,6 +80,8 @@ class AcquisitionService:
 
         if self.__task is not None and not self.__task.done():
             raise Exception("Acquisition is already running")
+
+        self.__ina228 = self.__create_ina228()
 
         self.__stop_requested = False
         self.__last_error = None
@@ -67,13 +101,13 @@ class AcquisitionService:
     async def __run(self, duration_ms: int | None, truncate: bool) -> None:
         self.__logger.start(truncate=truncate)
 
-        start_time = time.ticks_ms() #12
-        next_deadline = start_time   #12
+        start_time = time.ticks_ms()  # 12
+        next_deadline = start_time  # 12
 
         try:
             while not self.__stop_requested:
-                now = time.ticks_ms() # 12
-                remaining = time.ticks_diff(next_deadline, now) 
+                now = time.ticks_ms()  # 12
+                remaining = time.ticks_diff(next_deadline, now)
 
                 if remaining > 0:
                     await asyncio.sleep_ms(remaining)
@@ -164,5 +198,6 @@ class AcquisitionService:
             "target_duration_ms": self.__duration_ms,
             "recorded_samples": self.__last_recorded_samples,
             "duration_ms": duration_ms,
-            "last_error": self.__last_error
+            "last_error": self.__last_error,
+            "ina228_config": self.__ina228_config
         }
