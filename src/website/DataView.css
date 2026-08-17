@@ -1,0 +1,12 @@
+/* DATA VIEW SPECIFIC STYLES */
+
+.button.back {
+    background: #2f80ed;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.button.back:hover {
+    opacity: 0.85;
+}

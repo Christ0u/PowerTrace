@@ -17,6 +17,7 @@ except OSError as e:
 
 Template.initialize(template_dir=WEB_SERVER_ROOT_PATH)
 webpage: Template = Template(WEBSITE_NAME + ".html")
+data_view_page: Template = Template("DataView.html")
 Response.default_content_type = "text/html"
 
 
@@ -125,6 +126,16 @@ def generate_webpage() -> str:
     return webpage.render(parameters=parameters)
 
 
+def generate_data_view_webpage() -> str:
+    """
+    Render and return the data visualization HTML page.
+
+    :return: rendered HTML string.
+    """
+    parameters: dict[str, dict] = {}
+    return data_view_page.render(parameters=parameters)
+
+
 @application.route("/")
 async def index(request) -> Response:
     """
@@ -134,6 +145,17 @@ async def index(request) -> Response:
     :return: HTTP response containing the rendered HTML page.
     """
     return Response(generate_webpage())
+
+
+@application.route("/view")
+async def data_view(request) -> Response:
+    """
+    Serve the data visualization HTML page.
+
+    :param request: incoming HTTP request.
+    :return: HTTP response containing the rendered HTML page.
+    """
+    return Response(generate_data_view_webpage())
 
 
 @application.route("/style.css")
@@ -150,6 +172,20 @@ async def style(request) -> Response:
     )
 
 
+@application.route("/data-view-style.css")
+async def data_view_style(request) -> Response:
+    """
+    Serve the data view CSS stylesheet.
+
+    :param request: incoming HTTP request.
+    :return: HTTP response containing the CSS file.
+    """
+    return Response(
+        open(WEB_SERVER_ROOT_PATH + "/DataView.css").read(),
+        headers={"Content-Type": "text/css"},
+    )
+
+
 @application.route("/script.js")
 async def script(request) -> Response:
     """
@@ -160,6 +196,20 @@ async def script(request) -> Response:
     """
     return Response(
         open(WEB_SERVER_SCRIPT_PATH).read(),
+        headers={"Content-Type": "text/javascript"},
+    )
+
+
+@application.route("/data-view-script.js")
+async def data_view_script(request) -> Response:
+    """
+    Serve the data view JavaScript file.
+
+    :param request: incoming HTTP request.
+    :return: HTTP response containing the JavaScript file.
+    """
+    return Response(
+        open(WEB_SERVER_ROOT_PATH + "/DataView.js").read(),
         headers={"Content-Type": "text/javascript"},
     )
 

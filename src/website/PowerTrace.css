@@ -617,3 +617,19 @@ select:focus {
     border-color: #2f80ed;
     box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.15);
 }
+
+
+
+
+
+
+.button.view {
+    background: #2f80ed;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.button.view:hover {
+    opacity: 0.85;
+}

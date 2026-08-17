@@ -1,7 +1,6 @@
 import uasyncio as asyncio
 
 from src.classes.SDCardCustom import SDCardCustom
-from src.classes.INA228Custom import INA228Custom
 from src.classes.MeasurementLogger import MeasurementLogger
 from src.classes.AcquisitionService import AcquisitionService
 from src.classes.WiFiCustom import WiFiCustom
@@ -22,6 +21,7 @@ async def main():
     PowerTrace.configure_acquisition_service(acquisition_service)
 
     print("Starting web server...")
+
     await PowerTrace.application.start_server(port=int(WEB_SERVER_PORT))
 
 if __name__ == "__main__":
