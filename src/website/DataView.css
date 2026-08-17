@@ -173,6 +173,79 @@
     color: #52606d;
 }
 
+.file-info-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* DELETE BUTTON */
+.button.delete {
+    background: #d64545;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.button.delete:hover {
+    background: #c03939;
+    transform: scale(1.05);
+}
+
+.button.delete:active {
+    transform: scale(0.95);
+}
+
+/* CLOSE BUTTON */
+.button.close {
+    background: #7b8794;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.button.close:hover {
+    background: #52606d;
+}
+
+/* FILE INFO HEADER RESPONSIVE */
+@media(max-width: 700px) {
+    .file-info-header {
+        flex-wrap: wrap;
+    }
+
+    .file-info-actions {
+        width: 100%;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+}
+
+@media(max-width: 380px) {
+    .file-info-actions {
+        flex-direction: column;
+    }
+
+    .button.delete,
+    .button.close {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
 /* DATA TABLE */
 .table-container {
     overflow-x: auto;

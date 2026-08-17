@@ -4,9 +4,12 @@ const fileListContainer = document.getElementById("file-list-container");
 const fileListSection = document.getElementById("file-list-section");
 const fileDetailSection = document.getElementById("file-detail-section");
 const closeDetailButton = document.getElementById("close-detail-button");
+const deleteFileButton = document.getElementById("delete-file-button");
 const detailFilename = document.getElementById("detail-filename");
 const detailStats = document.getElementById("detail-stats");
 const dataTableBody = document.getElementById("data-table-body");
+
+let currentFileName = null;  // Track the currently displayed file
 
 /**
  * Format file size in bytes to human-readable format.
@@ -100,13 +103,15 @@ function renderFileList(files, directory) {
 async function handleFileClick(fileName) {
     console.log(`Loading file: ${fileName}`);
 
+    currentFileName = fileName;
+
     // Show loading state
     fileDetailSection.classList.remove("hidden");
     detailFilename.textContent = fileName;
     detailStats.textContent = "Loading data...";
     dataTableBody.innerHTML = `
         <tr>
-            <td colspan="4" class="loading-text">Loading data...</td>
+            <td colspan="7" class="loading-text">Loading data...</td>
         </tr>
     `;
 
@@ -119,7 +124,7 @@ async function handleFileClick(fileName) {
         detailStats.textContent = `Error: ${error.message}`;
         dataTableBody.innerHTML = `
             <tr>
-                <td colspan="4" class="error-text">Unable to load file data</td>
+                <td colspan="7" class="error-text">Unable to load file data</td>
             </tr>
         `;
     }
@@ -190,10 +195,67 @@ function renderError(message) {
     `;
 }
 
+/**
+ * Delete the current file.
+ */
+async function deleteCurrentFile() {
+    if (!currentFileName) {
+        alert("No file selected");
+        return;
+    }
+
+    console.log("Attempting to delete:", currentFileName);
+
+    // Confirmation dialog
+    const confirmed = confirm(`Are you sure you want to delete this file?\n\n${currentFileName}\n\nThis action cannot be undone.`);
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        console.log("Sending DELETE request...");
+
+        const response = await fetch(`/api/files/delete?filename=${encodeURIComponent(currentFileName)}`, {
+            method: "POST"
+        });
+
+        console.log("Response status:", response.status);
+
+        const payload = await response.json();
+
+        console.log("Response payload:", payload);
+
+        if (!response.ok || !payload.success) {
+            throw new Error(payload.message || "Unable to delete file");
+        }
+
+        alert(`File deleted successfully: ${currentFileName}`);
+
+        // Close detail section
+        fileDetailSection.classList.add("hidden");
+
+        // Refresh file list
+        await fetchFileList();
+
+        // Scroll to file list
+        fileListSection.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    } catch (error) {
+        console.error("Delete error:", error);
+        alert(`Error deleting file: ${error.message}`);
+    }
+}
+
 // Close detail button
 closeDetailButton.addEventListener("click", () => {
     fileDetailSection.classList.add("hidden");
     fileListSection.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+// Delete file button
+deleteFileButton.addEventListener("click", () => {
+    void deleteCurrentFile();
 });
 
 // Initialize on page load

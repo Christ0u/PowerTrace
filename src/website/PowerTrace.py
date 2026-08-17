@@ -515,3 +515,71 @@ async def files_read(request) -> Response:
             },
             status_code=500
         )
+
+
+@application.post("/api/files/delete")
+@application.post("/api/files/delete")
+async def files_delete(request) -> Response:
+    """
+    Delete a binary measurement file.
+
+    :param request: incoming HTTP POST request with 'filename' query parameter.
+    :return: HTTP response containing the deletion result as JSON.
+    """
+    from src.config.config import SDCARD_ROOT_PATH, MEASUREMENT_LOGGER_LOGS_DIRECTORY
+    from src.classes.SDCardCustom import SDCardCustom
+
+    # Get filename from query parameter
+    file_name = request.args.get("filename")
+
+    if not file_name:
+        return get_response_from_json(
+            payload={
+                "success": False,
+                "message": "Missing 'filename' parameter"
+            },
+            status_code=400
+        )
+
+    if not file_name.endswith(".bin"):
+        return get_response_from_json(
+            payload={
+                "success": False,
+                "message": "Only .bin files are supported"
+            },
+            status_code=400
+        )
+
+    logs_directory = SDCARD_ROOT_PATH + MEASUREMENT_LOGGER_LOGS_DIRECTORY
+    file_path = logs_directory + "/" + file_name
+
+    try:
+        # Check if file exists
+        if not SDCardCustom.path_exists(file_path):
+            return get_response_from_json(
+                payload={
+                    "success": False,
+                    "message": f"File does not exist: {file_name}"
+                },
+                status_code=404
+            )
+
+        # Delete file using SDCardCustom
+        SDCardCustom.delete_file(file_path)
+
+        return get_response_from_json(
+            payload={
+                "success": True,
+                "message": f"File deleted: {file_name}"
+            },
+            status_code=200
+        )
+
+    except Exception as error:
+        return get_response_from_json(
+            payload={
+                "success": False,
+                "message": f"Unable to delete file: {str(error)}"
+            },
+            status_code=500
+        )
