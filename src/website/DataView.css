@@ -1,5 +1,6 @@
 /* DATA VIEW SPECIFIC STYLES */
 
+/* NAVIGATION BUTTON */
 .button.back {
     background: #2f80ed;
     text-decoration: none;
@@ -9,4 +10,130 @@
 
 .button.back:hover {
     opacity: 0.85;
+}
+
+/* FILE LIST CONTAINER */
+#file-list-container {
+    min-height: 100px;
+}
+
+.loading-text,
+.error-text,
+.empty-text {
+    text-align: center;
+    padding: 30px 20px;
+    color: #7b8794;
+}
+
+.error-text {
+    color: #d64545;
+    font-weight: 600;
+}
+
+.empty-text {
+    font-style: italic;
+}
+
+/* FILE LIST */
+.file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+/* FILE BUTTON */
+.file-button {
+    width: 100%;
+    background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+    border: 1px solid #d9e2ec;
+    border-radius: 10px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    font-family: inherit;
+    font-size: 14px;
+    color: #1f2933;
+    text-align: left;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.file-button:hover {
+    background: linear-gradient(135deg, #e8f0f8 0%, #d9e7f5 100%);
+    border-color: #2f80ed;
+    transform: translateX(6px);
+    box-shadow: 0 3px 8px rgba(47, 128, 237, 0.15);
+}
+
+.file-button:active {
+    transform: translateX(2px) scale(0.98);
+}
+
+/* FILE ICON */
+.file-button::before {
+    content: "📄";
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+/* FILE NAME */
+.file-button .file-name {
+    flex: 1;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2933;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* FILE SIZE */
+.file-button .file-size {
+    flex-shrink: 0;
+    background: #e8f0f8;
+    color: #2f80ed;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+/* TABLET / MOBILE */
+@media(max-width: 700px) {
+    .file-button {
+        padding: 14px 16px;
+    }
+
+    .file-button .file-name {
+        font-size: 13px;
+    }
+
+    .file-button .file-size {
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+}
+
+/* SMALL PHONES */
+@media(max-width: 380px) {
+    .file-button {
+        padding: 12px 14px;
+        flex-wrap: wrap;
+    }
+
+    .file-button .file-name {
+        width: 100%;
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .file-button .file-size {
+        align-self: flex-end;
+    }
 }
