@@ -12,6 +12,23 @@
     opacity: 0.85;
 }
 
+/* CLOSE BUTTON */
+.button.close {
+    background: #7b8794;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.button.close:hover {
+    background: #52606d;
+}
+
 /* FILE LIST CONTAINER */
 #file-list-container {
     min-height: 100px;
@@ -104,6 +121,125 @@
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
+/* HIDDEN SECTION */
+.hidden {
+    display: none !important;
+}
+
+/* FILE DETAIL SECTION */
+#file-detail-section {
+    margin-top: 20px;
+}
+
+/* FILE INFO */
+.file-info {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    border-left: 4px solid #2f80ed;
+}
+
+.file-info-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.file-info-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.file-info-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.file-info-name {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #12355b;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-info-stats {
+    margin: 0;
+    font-size: 13px;
+    color: #52606d;
+}
+
+/* DATA TABLE */
+.table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #d9e2ec;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    min-width: 800px;  /* Ensure table doesn't get too cramped */
+}
+
+.data-table thead {
+    background: #f8fafc;
+}
+
+.data-table th {
+    padding: 12px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: #12355b;
+    border-bottom: 2px solid #d9e2ec;
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #e8f0f8;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 11px;
+    color: #1f2933;
+    white-space: nowrap;
+}
+
+.data-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.data-table tbody tr:nth-child(even) {
+    background: #fafbfc;
+}
+
+.data-table tbody tr:nth-child(even):hover {
+    background: #f0f4f8;
+}
+
+/* Column-specific styling */
+.data-table th:nth-child(5),  /* Power */
+.data-table td:nth-child(5) {
+    color: #2f80ed;
+    font-weight: 600;
+}
+
+.data-table th:nth-child(6),  /* Energy */
+.data-table td:nth-child(6) {
+    color: #1f8f4d;
+    font-weight: 600;
+}
+
+.data-table th:nth-child(7),  /* Charge */
+.data-table td:nth-child(7) {
+    color: #7c3aed;
+    font-weight: 600;
+}
+
 /* TABLET / MOBILE */
 @media(max-width: 700px) {
     .file-button {
@@ -117,6 +253,23 @@
     .file-button .file-size {
         font-size: 11px;
         padding: 3px 8px;
+    }
+
+    .file-info-header {
+        flex-wrap: wrap;
+    }
+
+    .file-info-name {
+        font-size: 14px;
+    }
+
+    .data-table {
+        font-size: 12px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 8px 10px;
     }
 }
 
@@ -135,5 +288,19 @@
 
     .file-button .file-size {
         align-self: flex-end;
+    }
+
+    .file-info-icon {
+        font-size: 28px;
+    }
+
+    .file-info-name {
+        font-size: 13px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 6px 8px;
+        font-size: 11px;
     }
 }

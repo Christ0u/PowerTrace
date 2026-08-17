@@ -34,7 +34,7 @@
 
     <!-- FILE LIST -->
 
-    <section class="card">
+    <section class="card" id="file-list-section">
 
 
         <h2>
@@ -45,6 +45,54 @@
             <p class="loading-text">
                 Loading files...
             </p>
+        </div>
+
+    </section>
+
+
+
+
+    <!-- FILE DETAIL -->
+
+    <section class="card hidden" id="file-detail-section">
+
+
+        <h2>
+            File Details
+        </h2>
+
+        <!-- FILE INFO -->
+        <div class="file-info">
+            <div class="file-info-header">
+                <span class="file-info-icon">📄</span>
+                <div class="file-info-content">
+                    <h3 id="detail-filename" class="file-info-name"></h3>
+                    <p id="detail-stats" class="file-info-stats"></p>
+                </div>
+                <button id="close-detail-button" class="button close" type="button">
+                    ✕ Close
+                </button>
+            </div>
+        </div>
+
+        <!-- DATA TABLE -->
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Timestamp (ms)</th>
+                        <th>Bus Voltage (V)</th>
+                        <th>Current (A)</th>
+                        <th>Power (W)</th>
+                        <th>Energy (Wh)</th>
+                        <th>Charge (mAh)</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table-body">
+                    <!-- Data rows will be inserted here -->
+                </tbody>
+            </table>
         </div>
 
     </section>
