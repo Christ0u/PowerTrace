@@ -431,4 +431,8 @@
     .chart-container canvas {
         height: 180px !important;
     }
+
+    .chart-grid {
+        gap: 12px;
+    }
 }

@@ -18,6 +18,12 @@ let chartPower = null;
 let chartEnergy = null;
 let chartCharge = null;
 
+// Analytical chart instances
+let chartCurrentDist = null;
+let chartVoltageDist = null;
+let chartPowerDist = null;
+let chartScatter = null;
+
 /**
  * Format file size in bytes to human-readable format.
  * @param {number} bytes - File size in bytes.
@@ -191,6 +197,7 @@ function renderFileDetail(data) {
 
     // Render charts
     renderCharts(data.records);
+    renderAnalyticalCharts(data.records);
 }
 
 /**
@@ -255,6 +262,57 @@ async function deleteCurrentFile() {
         console.error("Delete error:", error);
         alert(`Error deleting file: ${error.message}`);
     }
+}
+
+/**
+ * Compute histogram data for a given array.
+ * @param {number[]} data - Array of values.
+ * @param {number} bins - Number of bins.
+ * @returns {Object} Histogram data with bins and frequencies.
+ */
+function computeHistogram(data, bins = 20) {
+    if (data.length === 0) {
+        return { labels: [], values: [] };
+    }
+
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+
+    if (min === max) {
+        return {
+            labels: [min.toFixed(4)],
+            values: [100]
+        };
+    }
+
+    const binWidth = (max - min) / bins;
+    const histogram = new Array(bins).fill(0);
+    const binLabels = [];
+
+    // Create bin labels
+    for (let i = 0; i < bins; i++) {
+        const binStart = min + i * binWidth;
+        const binEnd = min + (i + 1) * binWidth;
+        binLabels.push(`${binStart.toFixed(3)} - ${binEnd.toFixed(3)}`);
+    }
+
+    // Count values in each bin
+    for (const value of data) {
+        const binIndex = Math.min(
+            Math.floor((value - min) / binWidth),
+            bins - 1
+        );
+        histogram[binIndex]++;
+    }
+
+    // Convert to percentages
+    const total = histogram.reduce((a, b) => a + b, 0);
+    const percentages = histogram.map(count => (count / total) * 100);
+
+    return {
+        labels: binLabels,
+        values: percentages
+    };
 }
 
 /**
@@ -404,6 +462,144 @@ function renderCharts(records) {
     });
 }
 
+/**
+ * Render analytical charts.
+ * @param {Object[]} records - Array of measurement records.
+ */
+function renderAnalyticalCharts(records) {
+    // Destroy existing charts
+    if (chartCurrentDist) chartCurrentDist.destroy();
+    if (chartVoltageDist) chartVoltageDist.destroy();
+    if (chartPowerDist) chartPowerDist.destroy();
+    if (chartScatter) chartScatter.destroy();
+
+    if (records.length === 0) {
+        return;
+    }
+
+    // Extract data
+    const currentData = records.map(r => r.current_A);
+    const voltageData = records.map(r => r.bus_voltage_V);
+    const powerData = records.map(r => r.power_W);
+
+    // Compute histograms
+    const currentHist = computeHistogram(currentData, 20);
+    const voltageHist = computeHistogram(voltageData, 20);
+    const powerHist = computeHistogram(powerData, 20);
+
+    // Common histogram options
+    const histogramOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+            duration: 0
+        },
+        scales: {
+            x: {
+                ticks: {
+                    maxRotation: 45,
+                    minRotation: 45
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Frequency (%)'
+                }
+            }
+        }
+    };
+
+    // Current distribution chart
+    const ctxCurrentDist = document.getElementById('chart-current-dist').getContext('2d');
+    chartCurrentDist = new Chart(ctxCurrentDist, {
+        type: 'bar',
+        data: {
+            labels: currentHist.labels,
+            datasets: [{
+                label: 'Current (A)',
+                data: currentHist.values,
+                backgroundColor: 'rgba(47, 128, 237, 0.7)',
+                borderColor: '#2f80ed',
+                borderWidth: 1
+            }]
+        },
+        options: histogramOptions
+    });
+
+    // Voltage distribution chart
+    const ctxVoltageDist = document.getElementById('chart-voltage-dist').getContext('2d');
+    chartVoltageDist = new Chart(ctxVoltageDist, {
+        type: 'bar',
+        data: {
+            labels: voltageHist.labels,
+            datasets: [{
+                label: 'Voltage (V)',
+                data: voltageHist.values,
+                backgroundColor: 'rgba(31, 143, 77, 0.7)',
+                borderColor: '#1f8f4d',
+                borderWidth: 1
+            }]
+        },
+        options: histogramOptions
+    });
+
+    // Power distribution chart
+    const ctxPowerDist = document.getElementById('chart-power-dist').getContext('2d');
+    chartPowerDist = new Chart(ctxPowerDist, {
+        type: 'bar',
+        data: {
+            labels: powerHist.labels,
+            datasets: [{
+                label: 'Power (W)',
+                data: powerHist.values,
+                backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                borderColor: '#f59e0b',
+                borderWidth: 1
+            }]
+        },
+        options: histogramOptions
+    });
+
+    // Scatter plot (Voltage vs Current)
+    const ctxScatter = document.getElementById('chart-scatter').getContext('2d');
+    chartScatter = new Chart(ctxScatter, {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'V vs I',
+                data: voltageData.map((v, i) => ({ x: v, y: currentData[i] })),
+                backgroundColor: 'rgba(124, 58, 237, 0.5)',
+                borderColor: '#7c3aed',
+                borderWidth: 1,
+                pointRadius: 2,
+                pointHoverRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 0
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    title: {
+                        display: true,
+                        text: 'Voltage (V)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Current (A)'
+                    }
+                }
+            }
+        }
+    });
+}
 
 // Close detail button
 closeDetailButton.addEventListener("click", () => {
