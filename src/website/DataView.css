@@ -377,3 +377,58 @@
         font-size: 11px;
     }
 }
+
+/* CHARTS SECTION */
+.charts-section {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 2px solid #e8f0f8;
+}
+
+.charts-section h3 {
+    margin: 0 0 20px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #12355b;
+}
+
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.chart-container {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e8f0f8;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 250px !important;
+}
+
+/* TABLET */
+@media(max-width: 700px) {
+    .chart-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-container canvas {
+        height: 200px !important;
+    }
+}
+
+/* SMALL PHONES */
+@media(max-width: 380px) {
+    .chart-container {
+        padding: 12px;
+    }
+
+    .chart-container canvas {
+        height: 180px !important;
+    }
+}

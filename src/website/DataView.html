@@ -9,6 +9,9 @@
 
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/data-view-style.css">
+
+    <!-- Chart.js CDN -->
+    <script src="/chart.min.js"></script>
 </head>
 
 
@@ -98,6 +101,33 @@
                     <!-- Data rows will be inserted here -->
                 </tbody>
             </table>
+        </div>
+
+        <!-- DYNAMIC CHARTS -->
+        <div class="charts-section">
+            <h3>Dynamic Charts</h3>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <canvas id="chart-current"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart-voltage"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart-power"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart-energy"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart-charge"></canvas>
+                </div>
+            </div>
         </div>
 
     </section>

@@ -11,6 +11,13 @@ const dataTableBody = document.getElementById("data-table-body");
 
 let currentFileName = null;  // Track the currently displayed file
 
+// Chart instances
+let chartCurrent = null;
+let chartVoltage = null;
+let chartPower = null;
+let chartEnergy = null;
+let chartCharge = null;
+
 /**
  * Format file size in bytes to human-readable format.
  * @param {number} bytes - File size in bytes.
@@ -181,6 +188,9 @@ function renderFileDetail(data) {
     `).join('');
 
     dataTableBody.innerHTML = tableRows;
+
+    // Render charts
+    renderCharts(data.records);
 }
 
 /**
@@ -246,6 +256,154 @@ async function deleteCurrentFile() {
         alert(`Error deleting file: ${error.message}`);
     }
 }
+
+/**
+ * Render dynamic charts.
+ * @param {Object[]} records - Array of measurement records.
+ */
+function renderCharts(records) {
+    // Destroy existing charts
+    if (chartCurrent) chartCurrent.destroy();
+    if (chartVoltage) chartVoltage.destroy();
+    if (chartPower) chartPower.destroy();
+    if (chartEnergy) chartEnergy.destroy();
+    if (chartCharge) chartCharge.destroy();
+
+    if (records.length === 0) {
+        return;
+    }
+
+    // Extract data
+    const labels = records.map(r => r.timestamp_ms);
+    const currentData = records.map(r => r.current_A);
+    const voltageData = records.map(r => r.bus_voltage_V);
+    const powerData = records.map(r => r.power_W);
+    const energyData = records.map(r => r.energy_Wh);
+    const chargeData = records.map(r => r.charge_mAh);
+
+    // Common chart options
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+            duration: 0
+        },
+        interaction: {
+            mode: 'index',
+            intersect: false
+        },
+        scales: {
+            x: {
+                type: 'linear',
+                title: {
+                    display: true,
+                    text: 'Time (ms)'
+                }
+            }
+        }
+    };
+
+    // Current chart
+    const ctxCurrent = document.getElementById('chart-current').getContext('2d');
+    chartCurrent = new Chart(ctxCurrent, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Current (A)',
+                data: currentData,
+                borderColor: '#2f80ed',
+                backgroundColor: 'rgba(47, 128, 237, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                pointRadius: 0,
+                tension: 0.1
+            }]
+        },
+        options: commonOptions
+    });
+
+    // Voltage chart
+    const ctxVoltage = document.getElementById('chart-voltage').getContext('2d');
+    chartVoltage = new Chart(ctxVoltage, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Voltage (V)',
+                data: voltageData,
+                borderColor: '#1f8f4d',
+                backgroundColor: 'rgba(31, 143, 77, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                pointRadius: 0,
+                tension: 0.1
+            }]
+        },
+        options: commonOptions
+    });
+
+    // Power chart
+    const ctxPower = document.getElementById('chart-power').getContext('2d');
+    chartPower = new Chart(ctxPower, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Power (W)',
+                data: powerData,
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                pointRadius: 0,
+                tension: 0.1
+            }]
+        },
+        options: commonOptions
+    });
+
+    // Energy chart
+    const ctxEnergy = document.getElementById('chart-energy').getContext('2d');
+    chartEnergy = new Chart(ctxEnergy, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Energy (Wh)',
+                data: energyData,
+                borderColor: '#7c3aed',
+                backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                pointRadius: 0,
+                tension: 0.1
+            }]
+        },
+        options: commonOptions
+    });
+
+    // Charge chart
+    const ctxCharge = document.getElementById('chart-charge').getContext('2d');
+    chartCharge = new Chart(ctxCharge, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Charge (mAh)',
+                data: chargeData,
+                borderColor: '#ec4899',
+                backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                pointRadius: 0,
+                tension: 0.1
+            }]
+        },
+        options: commonOptions
+    });
+}
+
 
 // Close detail button
 closeDetailButton.addEventListener("click", () => {

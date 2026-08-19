@@ -583,3 +583,17 @@ async def files_delete(request) -> Response:
             },
             status_code=500
         )
+
+
+@application.route("/chart.min.js")
+async def chart_js(request) -> Response:
+    """
+    Serve Chart.js library.
+
+    :param request: incoming HTTP request.
+    :return: HTTP response containing the JavaScript file.
+    """
+    return Response(
+        open(WEB_SERVER_ROOT_PATH + "/chart.min.js").read(),
+        headers={"Content-Type": "text/javascript"},
+    )
