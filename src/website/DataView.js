@@ -198,6 +198,7 @@ function renderFileDetail(data) {
     // Render charts
     renderCharts(data.records);
     renderAnalyticalCharts(data.records);
+    renderStatisticalSummary(data.records);
 }
 
 /**
@@ -313,6 +314,80 @@ function computeHistogram(data, bins = 20) {
         labels: binLabels,
         values: percentages
     };
+}
+
+/**
+ * Calculate mean of an array.
+ * @param {number[]} data - Array of values.
+ * @returns {number} Mean value.
+ */
+function calculateMean(data) {
+    if (data.length === 0) return 0;
+    const sum = data.reduce((a, b) => a + b, 0);
+    return sum / data.length;
+}
+
+/**
+ * Calculate median of an array.
+ * @param {number[]} data - Array of values.
+ * @returns {number} Median value.
+ */
+function calculateMedian(data) {
+    if (data.length === 0) return 0;
+    const sorted = [...data].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 !== 0
+        ? sorted[mid]
+        : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+/**
+ * Calculate standard deviation of an array.
+ * @param {number[]} data - Array of values.
+ * @returns {number} Standard deviation.
+ */
+function calculateStdDev(data) {
+    if (data.length === 0) return 0;
+    const mean = calculateMean(data);
+    const squareDiffs = data.map(value => Math.pow(value - mean, 2));
+    const avgSquareDiff = calculateMean(squareDiffs);
+    return Math.sqrt(avgSquareDiff);
+}
+
+/**
+ * Calculate percentile of an array.
+ * @param {number[]} data - Array of values.
+ * @param {number} percentile - Percentile to calculate (0-100).
+ * @returns {number} Percentile value.
+ */
+function calculatePercentile(data, percentile) {
+    if (data.length === 0) return 0;
+    const sorted = [...data].sort((a, b) => a - b);
+    const index = (percentile / 100) * (sorted.length - 1);
+    const lower = Math.floor(index);
+    const upper = Math.ceil(index);
+    const weight = index - lower;
+    return sorted[lower] * (1 - weight) + sorted[upper] * weight;
+}
+
+/**
+ * Calculate min of an array.
+ * @param {number[]} data - Array of values.
+ * @returns {number} Minimum value.
+ */
+function calculateMin(data) {
+    if (data.length === 0) return 0;
+    return Math.min(...data);
+}
+
+/**
+ * Calculate max of an array.
+ * @param {number[]} data - Array of values.
+ * @returns {number} Maximum value.
+ */
+function calculateMax(data) {
+    if (data.length === 0) return 0;
+    return Math.max(...data);
 }
 
 /**
@@ -599,6 +674,181 @@ function renderAnalyticalCharts(records) {
             }
         }
     });
+}
+
+/**
+ * Render statistical summary.
+ * @param {Object[]} records - Array of measurement records.
+ */
+function renderStatisticalSummary(records) {
+    if (records.length === 0) {
+        document.getElementById('stats-current').innerHTML = '<p class="empty-text">No data</p>';
+        document.getElementById('stats-voltage').innerHTML = '<p class="empty-text">No data</p>';
+        document.getElementById('stats-power').innerHTML = '<p class="empty-text">No data</p>';
+        document.getElementById('stats-energy').innerHTML = '<p class="empty-text">No data</p>';
+        document.getElementById('stats-charge').innerHTML = '<p class="empty-text">No data</p>';
+        return;
+    }
+
+    // Extract data
+    const currentData = records.map(r => r.current_A);
+    const voltageData = records.map(r => r.bus_voltage_V);
+    const powerData = records.map(r => r.power_W);
+    const energyData = records.map(r => r.energy_Wh);
+    const chargeData = records.map(r => r.charge_mAh);
+
+    // Calculate statistics for Current
+    const currentStats = {
+        min: calculateMin(currentData),
+        max: calculateMax(currentData),
+        mean: calculateMean(currentData),
+        median: calculateMedian(currentData),
+        stdDev: calculateStdDev(currentData),
+        p95: calculatePercentile(currentData, 95),
+        p99: calculatePercentile(currentData, 99)
+    };
+
+    // Calculate statistics for Voltage
+    const voltageStats = {
+        min: calculateMin(voltageData),
+        max: calculateMax(voltageData),
+        mean: calculateMean(voltageData),
+        median: calculateMedian(voltageData),
+        stdDev: calculateStdDev(voltageData),
+        p95: calculatePercentile(voltageData, 95),
+        p99: calculatePercentile(voltageData, 99)
+    };
+
+    // Calculate statistics for Power
+    const powerStats = {
+        min: calculateMin(powerData),
+        max: calculateMax(powerData),
+        mean: calculateMean(powerData),
+        median: calculateMedian(powerData),
+        stdDev: calculateStdDev(powerData),
+        p95: calculatePercentile(powerData, 95),
+        p99: calculatePercentile(powerData, 99)
+    };
+
+    // Calculate Energy stats
+    const energyTotal = energyData[energyData.length - 1];
+    const energyAvgPower = calculateMean(powerData);
+
+    // Calculate Charge stats
+    const chargeTotal = chargeData[chargeData.length - 1];
+    const chargeAvgCurrent = calculateMean(currentData);
+
+    // Render Current stats
+    document.getElementById('stats-current').innerHTML = `
+        <div class="stat-item">
+            <span class="stat-label">Min</span>
+            <span class="stat-value">${currentStats.min.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Max</span>
+            <span class="stat-value">${currentStats.max.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Mean</span>
+            <span class="stat-value">${currentStats.mean.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Median</span>
+            <span class="stat-value">${currentStats.median.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Std Dev</span>
+            <span class="stat-value">${currentStats.stdDev.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">P95</span>
+            <span class="stat-value">${currentStats.p95.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">P99</span>
+            <span class="stat-value">${currentStats.p99.toFixed(6)}</span>
+        </div>
+    `;
+
+    // Render Voltage stats
+    document.getElementById('stats-voltage').innerHTML = `
+        <div class="stat-item">
+            <span class="stat-label">Min</span>
+            <span class="stat-value">${voltageStats.min.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Max</span>
+            <span class="stat-value">${voltageStats.max.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Mean</span>
+            <span class="stat-value">${voltageStats.mean.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Median</span>
+            <span class="stat-value">${voltageStats.median.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Std Dev</span>
+            <span class="stat-value">${voltageStats.stdDev.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">P95</span>
+            <span class="stat-value">${voltageStats.p95.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">P99</span>
+            <span class="stat-value">${voltageStats.p99.toFixed(6)}</span>
+        </div>
+    `;
+
+    // Render Power stats
+    document.getElementById('stats-power').innerHTML = `
+        <div class="stat-item">
+            <span class="stat-label">Min</span>
+            <span class="stat-value">${powerStats.min.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Max</span>
+            <span class="stat-value">${powerStats.max.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Mean</span>
+            <span class="stat-value">${powerStats.mean.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Median</span>
+            <span class="stat-value">${powerStats.median.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Std Dev</span>
+            <span class="stat-value">${powerStats.stdDev.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">P95</span>
+            <span class="stat-value">${powerStats.p95.toFixed(6)}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">P99</span>
+            <span class="stat-value">${powerStats.p99.toFixed(6)}</span>
+        </div>
+    `;
+
+    // Render Energy stats
+    document.getElementById('stats-energy').innerHTML = `
+        <div class="stat-item">
+            <span class="stat-label">Total</span>
+            <span class="stat-value">${energyTotal.toFixed(6)}</span>
+        </div>
+    `;
+
+    // Render Charge stats
+    document.getElementById('stats-charge').innerHTML = `
+        <div class="stat-item">
+            <span class="stat-label">Total</span>
+            <span class="stat-value">${chargeTotal.toFixed(6)}</span>
+        </div>
+    `;
 }
 
 // Close detail button
