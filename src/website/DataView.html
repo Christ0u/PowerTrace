@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Data View - PowerTrace</title>
+
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/data-view-style.css">
+
+    <!-- Chart.js CDN -->
+    <script src="/chart.min.js"></script>
+</head>
+
+
+<body>
+
+<main class="container">
+
+
+    <!-- HEADER -->
+
+    <header class="header">
+
+        <h1>Data View</h1>
+
+        <p>
+            Measurement data visualization
+        </p>
+
+    </header>
+
+
+
+
+    <!-- FILE LIST -->
+
+    <section class="card" id="file-list-section">
+
+
+        <h2>
+            Available Recordings
+        </h2>
+
+        <div id="file-list-container">
+            <p class="loading-text">
+                Loading files...
+            </p>
+        </div>
+
+    </section>
+
+
+
+
+    <!-- FILE DETAIL -->
+
+    <section class="card hidden" id="file-detail-section">
+
+
+        <h2>
+            File Details
+        </h2>
+
+        <!-- FILE INFO -->
+        <div class="file-info">
+            <div class="file-info-header">
+                <span class="file-info-icon">📄</span>
+                <div class="file-info-content">
+                    <h3 id="detail-filename" class="file-info-name"></h3>
+                    <p id="detail-stats" class="file-info-stats"></p>
+                </div>
+                <div class="file-info-actions">
+                    <button id="delete-file-button" class="button delete" type="button">
+                        🗑️ Delete
+                    </button>
+                    <button id="close-detail-button" class="button close" type="button">
+                        ✕ Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DATA TABLE -->
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Timestamp (ms)</th>
+                        <th>Bus Voltage (V)</th>
+                        <th>Current (A)</th>
+                        <th>Power (W)</th>
+                        <th>Energy (Wh)</th>
+                        <th>Charge (mAh)</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table-body">
+                    <!-- Data rows will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- DYNAMIC CHARTS -->
+        <div class="charts-section">
+            <h3>Dynamic Charts</h3>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <canvas id="chart-current"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart-voltage"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart-power"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart-energy"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart-charge"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ANALYTICAL CHARTS -->
+        <div class="charts-section">
+            <h3>Analytical Charts</h3>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <canvas id="chart-current-dist"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart-voltage-dist"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart-power-dist"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart-scatter"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATISTICAL SUMMARY -->
+        <div class="charts-section">
+            <h3>Statistical Summary</h3>
+
+            <div class="stats-grid">
+                <!-- Current -->
+                <div class="stats-card">
+                    <h4 class="stats-title current">Current (A)</h4>
+                    <div class="stats-content" id="stats-current">
+                        <!-- Stats will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Voltage -->
+                <div class="stats-card">
+                    <h4 class="stats-title voltage">Voltage (V)</h4>
+                    <div class="stats-content" id="stats-voltage">
+                        <!-- Stats will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Power -->
+                <div class="stats-card">
+                    <h4 class="stats-title power">Power (W)</h4>
+                    <div class="stats-content" id="stats-power">
+                        <!-- Stats will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Energy -->
+                <div class="stats-card">
+                    <h4 class="stats-title energy">Energy (Wh)</h4>
+                    <div class="stats-content" id="stats-energy">
+                        <!-- Stats will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Charge -->
+                <div class="stats-card">
+                    <h4 class="stats-title charge">Charge (mAh)</h4>
+                    <div class="stats-content" id="stats-charge">
+                        <!-- Stats will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+
+
+    <!-- NAVIGATION -->
+
+    <section class="card actions">
+
+
+        <h2>
+            Navigation
+        </h2>
+
+        <div class="button-group">
+
+            <a href="/" class="button back">
+                <- Back to Acquisition
+            </a>
+
+        </div>
+
+    </section>
+
+
+
+</main>
+
+
+
+
+<script src="/data-view-script.js"></script>
+
+
+</body>
+
+</html>

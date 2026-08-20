@@ -17,6 +17,7 @@ except OSError as e:
 
 Template.initialize(template_dir=WEB_SERVER_ROOT_PATH)
 webpage: Template = Template(WEBSITE_NAME + ".html")
+data_view_page: Template = Template("DataView.html")
 Response.default_content_type = "text/html"
 
 
@@ -125,6 +126,16 @@ def generate_webpage() -> str:
     return webpage.render(parameters=parameters)
 
 
+def generate_data_view_webpage() -> str:
+    """
+    Render and return the data visualization HTML page.
+
+    :return: rendered HTML string.
+    """
+    parameters: dict[str, dict] = {}
+    return data_view_page.render(parameters=parameters)
+
+
 @application.route("/")
 async def index(request) -> Response:
     """
@@ -134,6 +145,17 @@ async def index(request) -> Response:
     :return: HTTP response containing the rendered HTML page.
     """
     return Response(generate_webpage())
+
+
+@application.route("/view")
+async def data_view(request) -> Response:
+    """
+    Serve the data visualization HTML page.
+
+    :param request: incoming HTTP request.
+    :return: HTTP response containing the rendered HTML page.
+    """
+    return Response(generate_data_view_webpage())
 
 
 @application.route("/style.css")
@@ -150,6 +172,20 @@ async def style(request) -> Response:
     )
 
 
+@application.route("/data-view-style.css")
+async def data_view_style(request) -> Response:
+    """
+    Serve the data view CSS stylesheet.
+
+    :param request: incoming HTTP request.
+    :return: HTTP response containing the CSS file.
+    """
+    return Response(
+        open(WEB_SERVER_ROOT_PATH + "/DataView.css").read(),
+        headers={"Content-Type": "text/css"},
+    )
+
+
 @application.route("/script.js")
 async def script(request) -> Response:
     """
@@ -160,6 +196,20 @@ async def script(request) -> Response:
     """
     return Response(
         open(WEB_SERVER_SCRIPT_PATH).read(),
+        headers={"Content-Type": "text/javascript"},
+    )
+
+
+@application.route("/data-view-script.js")
+async def data_view_script(request) -> Response:
+    """
+    Serve the data view JavaScript file.
+
+    :param request: incoming HTTP request.
+    :return: HTTP response containing the JavaScript file.
+    """
+    return Response(
+        open(WEB_SERVER_ROOT_PATH + "/DataView.js").read(),
         headers={"Content-Type": "text/javascript"},
     )
 
@@ -260,3 +310,290 @@ async def acquisition_stop(request) -> Response:
             },
             status_code=500
         )
+
+
+@application.route("/api/files/list")
+async def files_list(request) -> Response:
+    """
+    List all .bin files in the measurement logs directory.
+
+    :param request: incoming HTTP request.
+    :return: HTTP response containing the list of files as JSON.
+    """
+    from src.config.config import SDCARD_ROOT_PATH, MEASUREMENT_LOGGER_LOGS_DIRECTORY
+    from src.classes.SDCardCustom import SDCardCustom
+
+    logs_directory = SDCARD_ROOT_PATH + MEASUREMENT_LOGGER_LOGS_DIRECTORY
+
+    try:
+        # Check if directory exists
+        if not SDCardCustom.path_exists(logs_directory):
+            return get_response_from_json(
+                payload={
+                    "success": False,
+                    "message": f"Directory does not exist: {logs_directory}"
+                },
+                status_code=404
+            )
+
+        # List files using SDCardCustom
+        files = SDCardCustom.list_files(logs_directory)
+
+        # Filter only .bin files
+        bin_files = [f for f in files if f.endswith(".bin")]
+
+        # Sort files alphabetically
+        bin_files.sort()
+
+        # Get file sizes
+        files_with_sizes = []
+        for file_name in bin_files:
+            file_path = logs_directory + "/" + file_name
+            file_size = SDCardCustom.get_file_size(file_path)
+            files_with_sizes.append({
+                "name": file_name,
+                "size": file_size
+            })
+
+        return get_response_from_json(
+            payload={
+                "success": True,
+                "data": {
+                    "directory": logs_directory,
+                    "files": files_with_sizes
+                }
+            },
+            status_code=200
+        )
+
+    except Exception as error:
+        return get_response_from_json(
+            payload={
+                "success": False,
+                "message": f"Unable to read directory: {str(error)}"
+            },
+            status_code=500
+        )
+
+
+@application.route("/api/files/read")
+async def files_read(request) -> Response:
+    """
+    Read binary measurement data from a file.
+
+    :param request: incoming HTTP request with 'filename' query parameter.
+    :return: HTTP response containing the measurement data as JSON.
+    """
+    from src.config.config import SDCARD_ROOT_PATH, MEASUREMENT_LOGGER_LOGS_DIRECTORY
+    from src.classes.SDCardCustom import SDCardCustom
+    import struct
+
+    file_name = request.args.get("filename")
+
+    if not file_name:
+        return get_response_from_json(
+            payload={
+                "success": False,
+                "message": "Missing 'filename' parameter"
+            },
+            status_code=400
+        )
+
+    if not file_name.endswith(".bin"):
+        return get_response_from_json(
+            payload={
+                "success": False,
+                "message": "Only .bin files are supported"
+            },
+            status_code=400
+        )
+
+    logs_directory = SDCARD_ROOT_PATH + MEASUREMENT_LOGGER_LOGS_DIRECTORY
+    file_path = logs_directory + "/" + file_name
+
+    try:
+        # Check if file exists
+        if not SDCardCustom.path_exists(file_path):
+            return get_response_from_json(
+                payload={
+                    "success": False,
+                    "message": f"File does not exist: {file_name}"
+                },
+                status_code=404
+            )
+
+        # Read binary file
+        with open(file_path, "rb") as f:
+            raw_data = f.read()
+
+        # Parse binary data
+        # timestamp (uint32), bus_voltage (float), current (float)
+        RECORD_FORMAT = "<Iff"
+        record_size = struct.calcsize(RECORD_FORMAT)
+        raw_len = len(raw_data)
+
+        if raw_len == 0:
+            return get_response_from_json(
+                payload={
+                    "success": True,
+                    "data": {
+                        "filename": file_name,
+                        "record_count": 0,
+                        "records": []
+                    }
+                },
+                status_code=200
+            )
+
+        record_count = raw_len // record_size
+
+        # Limit to first 1000 records for performance (can be adjusted later)
+        max_records = 1000
+        if record_count > max_records:
+            record_count = max_records
+
+        records = []
+        cumulative_energy_Wh = 0.0
+        cumulative_charge_mAh = 0.0
+        previous_timestamp_ms = 0
+
+        for i in range(record_count):
+            offset = i * record_size
+            timestamp, bus_voltage, current = struct.unpack_from(
+                RECORD_FORMAT,
+                raw_data,
+                offset
+            )
+
+            # Calculate power (W)
+            power_W = bus_voltage * current
+
+            # Calculate time delta (hours)
+            if i == 0:
+                delta_time_h = 0.0
+            else:
+                delta_time_ms = timestamp - previous_timestamp_ms
+                delta_time_h = delta_time_ms / 3600000.0  # ms to hours
+
+            # Calculate cumulative energy (Wh)
+            cumulative_energy_Wh += power_W * delta_time_h
+
+            # Calculate cumulative charge (mAh)
+            cumulative_charge_mAh += current * delta_time_h * 1000.0  # A·h to mAh
+
+            records.append({
+                "index": i,
+                "timestamp_ms": timestamp,
+                "bus_voltage_V": bus_voltage,
+                "current_A": current,
+                "power_W": power_W,
+                "energy_Wh": cumulative_energy_Wh,
+                "charge_mAh": cumulative_charge_mAh
+            })
+
+            previous_timestamp_ms = timestamp
+
+        return get_response_from_json(
+            payload={
+                "success": True,
+                "data": {
+                    "filename": file_name,
+                    "file_size_bytes": raw_len,
+                    "record_count": len(records),
+                    "total_records": raw_len // record_size,
+                    "records": records
+                }
+            },
+            status_code=200
+        )
+
+    except Exception as error:
+        return get_response_from_json(
+            payload={
+                "success": False,
+                "message": f"Unable to read file: {str(error)}"
+            },
+            status_code=500
+        )
+
+
+@application.post("/api/files/delete")
+@application.post("/api/files/delete")
+async def files_delete(request) -> Response:
+    """
+    Delete a binary measurement file.
+
+    :param request: incoming HTTP POST request with 'filename' query parameter.
+    :return: HTTP response containing the deletion result as JSON.
+    """
+    from src.config.config import SDCARD_ROOT_PATH, MEASUREMENT_LOGGER_LOGS_DIRECTORY
+    from src.classes.SDCardCustom import SDCardCustom
+
+    # Get filename from query parameter
+    file_name = request.args.get("filename")
+
+    if not file_name:
+        return get_response_from_json(
+            payload={
+                "success": False,
+                "message": "Missing 'filename' parameter"
+            },
+            status_code=400
+        )
+
+    if not file_name.endswith(".bin"):
+        return get_response_from_json(
+            payload={
+                "success": False,
+                "message": "Only .bin files are supported"
+            },
+            status_code=400
+        )
+
+    logs_directory = SDCARD_ROOT_PATH + MEASUREMENT_LOGGER_LOGS_DIRECTORY
+    file_path = logs_directory + "/" + file_name
+
+    try:
+        # Check if file exists
+        if not SDCardCustom.path_exists(file_path):
+            return get_response_from_json(
+                payload={
+                    "success": False,
+                    "message": f"File does not exist: {file_name}"
+                },
+                status_code=404
+            )
+
+        # Delete file using SDCardCustom
+        SDCardCustom.delete_file(file_path)
+
+        return get_response_from_json(
+            payload={
+                "success": True,
+                "message": f"File deleted: {file_name}"
+            },
+            status_code=200
+        )
+
+    except Exception as error:
+        return get_response_from_json(
+            payload={
+                "success": False,
+                "message": f"Unable to delete file: {str(error)}"
+            },
+            status_code=500
+        )
+
+
+@application.route("/chart.min.js")
+async def chart_js(request) -> Response:
+    """
+    Serve Chart.js library.
+
+    :param request: incoming HTTP request.
+    :return: HTTP response containing the JavaScript file.
+    """
+    return Response(
+        open(WEB_SERVER_ROOT_PATH + "/chart.min.js").read(),
+        headers={"Content-Type": "text/javascript"},
+    )
