@@ -532,3 +532,50 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* EXPORT BUTTON */
+.button.export {
+    background: #1f8f4d;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.button.export:hover {
+    background: #1a7a42;
+    transform: scale(1.05);
+}
+
+.button.export:active {
+    transform: scale(0.95);
+}
+
+/* FILE INFO ACTIONS RESPONSIVE */
+@media(max-width: 700px) {
+    .file-info-actions {
+        width: 100%;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+}
+
+@media(max-width: 380px) {
+    .file-info-actions {
+        flex-direction: column;
+    }
+
+    .button.export,
+    .button.delete,
+    .button.close {
+        width: 100%;
+        justify-content: center;
+    }
+}

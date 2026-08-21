@@ -597,3 +597,127 @@ async def chart_js(request) -> Response:
         open(WEB_SERVER_ROOT_PATH + "/chart.min.js").read(),
         headers={"Content-Type": "text/javascript"},
     )
+
+
+@application.route("/api/files/export")
+async def files_export(request) -> Response:
+    """
+    Export measurement data as CSV file.
+
+    :param request: incoming HTTP request with 'filename' query parameter.
+    :return: HTTP response containing the CSV file.
+    """
+    from src.config.config import SDCARD_ROOT_PATH, MEASUREMENT_LOGGER_LOGS_DIRECTORY
+    from src.classes.SDCardCustom import SDCardCustom
+    import struct
+
+    file_name = request.args.get("filename")
+
+    if not file_name:
+        return Response(
+            body="Missing 'filename' parameter",
+            status_code=400,
+            headers={"Content-Type": "text/plain"}
+        )
+
+    if not file_name.endswith(".bin"):
+        return Response(
+            body="Only .bin files are supported",
+            status_code=400,
+            headers={"Content-Type": "text/plain"}
+        )
+
+    logs_directory = SDCARD_ROOT_PATH + MEASUREMENT_LOGGER_LOGS_DIRECTORY
+    file_path = logs_directory + "/" + file_name
+
+    try:
+        # Check if file exists
+        if not SDCardCustom.path_exists(file_path):
+            return Response(
+                body=f"File does not exist: {file_name}",
+                status_code=404,
+                headers={"Content-Type": "text/plain"}
+            )
+
+        # Read binary file directly (binary mode)
+        with open(file_path, "rb") as f:
+            raw_data = f.read()
+
+        # Parse binary data
+        # timestamp (uint32), bus_voltage (float), current (float)
+        RECORD_FORMAT = "<Iff"
+        record_size = struct.calcsize(RECORD_FORMAT)
+        raw_len = len(raw_data)
+
+        if raw_len == 0:
+            csv_content = "index,timestamp_ms,bus_voltage_V,current_A,power_W,energy_Wh,charge_mAh\n"
+            return Response(
+                body=csv_content,
+                status_code=200,
+                headers={
+                    "Content-Type": "text/csv",
+                    "Content-Disposition": f'attachment; filename="{file_name.replace(".bin", ".csv")}"'
+                }
+            )
+
+        record_count = raw_len // record_size
+
+        # Build CSV content
+        csv_lines = [
+            "index,timestamp_ms,bus_voltage_V,current_A,power_W,energy_Wh,charge_mAh"]
+
+        cumulative_energy_Wh = 0.0
+        cumulative_charge_mAh = 0.0
+        previous_timestamp_ms = 0
+
+        for i in range(record_count):
+            offset = i * record_size
+            timestamp, bus_voltage, current = struct.unpack_from(
+                RECORD_FORMAT,
+                raw_data,
+                offset
+            )
+
+            # Calculate power (W)
+            power_W = bus_voltage * current
+
+            # Calculate time delta (hours)
+            if i == 0:
+                delta_time_h = 0.0
+            else:
+                delta_time_ms = timestamp - previous_timestamp_ms
+                delta_time_h = delta_time_ms / 3600000.0  # ms to hours
+
+            # Calculate cumulative energy (Wh)
+            cumulative_energy_Wh += power_W * delta_time_h
+
+            # Calculate cumulative charge (mAh)
+            cumulative_charge_mAh += current * delta_time_h * 1000.0  # A·h to mAh
+
+            csv_lines.append(
+                f"{i},{timestamp},{
+                    bus_voltage:.6f},{
+                    current:.6f},{
+                    power_W:.6f},{
+                    cumulative_energy_Wh:.6f},{
+                        cumulative_charge_mAh:.6f}")
+
+            previous_timestamp_ms = timestamp
+
+        csv_content = "\n".join(csv_lines)
+
+        return Response(
+            body=csv_content,
+            status_code=200,
+            headers={
+                "Content-Type": "text/csv",
+                "Content-Disposition": f'attachment; filename="{file_name.replace(".bin", ".csv")}"'
+            }
+        )
+
+    except Exception as error:
+        return Response(
+            body=f"Error: {str(error)}",
+            status_code=500,
+            headers={"Content-Type": "text/plain"}
+        )
