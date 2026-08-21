@@ -3,6 +3,7 @@
 const fileListContainer = document.getElementById("file-list-container");
 const fileListSection = document.getElementById("file-list-section");
 const fileDetailSection = document.getElementById("file-detail-section");
+const exportCsvButton = document.getElementById("export-csv-button");
 const closeDetailButton = document.getElementById("close-detail-button");
 const deleteFileButton = document.getElementById("delete-file-button");
 const detailFilename = document.getElementById("detail-filename");
@@ -851,6 +852,28 @@ function renderStatisticalSummary(records) {
     `;
 }
 
+/**
+ * Export current file data as CSV.
+ */
+function exportCsv() {
+    if (!currentFileName) {
+        alert("No file selected");
+        return;
+    }
+
+    // Open CSV in new tab (browser will handle download)
+    const csvUrl = `/api/files/export?filename=${encodeURIComponent(currentFileName)}`;
+
+    const link = document.createElement('a');
+    link.href = csvUrl;
+    link.download = currentFileName.replace('.bin', '.csv');
+    link.style.display = 'none';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 // Close detail button
 closeDetailButton.addEventListener("click", () => {
     fileDetailSection.classList.add("hidden");
@@ -860,6 +883,11 @@ closeDetailButton.addEventListener("click", () => {
 // Delete file button
 deleteFileButton.addEventListener("click", () => {
     void deleteCurrentFile();
+});
+
+// Export CSV button
+exportCsvButton.addEventListener("click", () => {
+    exportCsv();
 });
 
 // Initialize on page load
