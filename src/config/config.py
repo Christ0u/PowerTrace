@@ -1,0 +1,33 @@
+"""Defines configuration constants for the PowerTrace system."""
+SPI_BAUDRATE: int = 20_000_000
+SPI_ID: int = 1
+I2C_FREQUENCY: int = 400_000
+
+INA_228_SHUNT_RESISTANCE: float | int = 0.100
+INA_228_MAX_EXPECTED_CURRENT: float | int = 1
+
+SDCARD_ROOT_PATH: str = "/sd"
+
+MEASUREMENT_LOGGER_BUFFER_SIZE: int = 64
+MEASUREMENT_LOGGER_DECIMAL_PRECISION: int = 12
+MEASUREMENT_LOGGER_LOGS_DIRECTORY: str = "/logs"
+
+SSID: str = "PowerTrace"
+
+WEBSITE_NAME: str = "PowerTrace"
+
+WEB_SERVER_IP_ADDRESS: str = "192.168.4.1"
+WEB_SERVER_PORT: str = "80"
+WEB_SERVER_ROOT_PATH: str = "src/website"
+WEB_SERVER_STYLE_PATH: str = WEB_SERVER_ROOT_PATH + "/" + WEBSITE_NAME + ".css"
+WEB_SERVER_SCRIPT_PATH: str = WEB_SERVER_ROOT_PATH + "/" + WEBSITE_NAME + ".js"
+
+MIN_SAMPLE_PERIOD_MS = 5
+MAX_SAMPLE_PERIOD_MS = 5000
+
+MIN_DURATION_S = 1
+MAX_DURATION_S = 3600
+
+# Struct format string for binary measurement records
+# (timestamp, voltage, current)
+RECORD_FORMAT = "<Iff"

@@ -1,0 +1,9 @@
+"""Defines GPIO pin assignments for hardware peripherals."""
+PIN_INA228_ALE = 2
+PIN_INA228_SDA = 5
+PIN_INA228_SCL = 6
+
+PIN_SDCARD_SCK = 7
+PIN_SDCARD_MISO = 8
+PIN_SDCARD_MOSI = 9
+PIN_SDCARD_CS = 43
