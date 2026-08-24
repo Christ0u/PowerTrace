@@ -1,529 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>PowerTrace</title>
-
     <link rel="stylesheet" href="/style.css">
-</head>
-
-
-<body>
-
-<main class="container">
-
-
-    <!-- HEADER -->
-
-    <header class="header">
-
+  </head>
+  <body>
+    <main class="container">
+      <!-- HEADER -->
+      <header class="header">
         <h1>PowerTrace</h1>
-
-        <p>
-            Measurement acquisition control panel
-        </p>
-
-    </header>
-
-
-
-
-    <!-- ACQUISITION CONFIGURATION -->
-
-    <section class="card">
-
-
-        <h2>
-            Acquisition configuration
-        </h2>
-
-
-
+        <p> Measurement acquisition control panel </p>
+      </header>
+      <!-- ACQUISITION CONFIGURATION -->
+      <section class="card">
+        <h2> Acquisition configuration </h2>
         <div class="form-group">
-
-            <label for="sample-period-input">
-                Sampling period
-            </label>
-
-
-            <div class="input-with-unit">
-
-                <input
-                    id="sample-period-input"
-                    name="sample_period_ms"
-                    type="number"
-                    min="5"
-                    max="5000"
-                    step="1"
-                    value="200"
-                >
-
-                <span>
-                    ms
-                </span>
-
-            </div>
-
-
-            <p class="hint">
-                Allowed range: 5 ms to 5000 ms.
-            </p>
-
-            <details class="sensor-config-group">
-                <summary>INA228 configuration</summary>
-
-                <div class="sensor-config-body">
-                    <div class="form-group">
-                        <label for="adc-range-select">ADC range</label>
-                        <select id="adc-range-select" name="adc_range">
-                            <option value="0">±163.84 mV (higher current range)</option>
-                            <option value="1" selected>±40.96 mV (higher resolution)</option>
-                        </select>
-                        <p class="hint">Selects the shunt voltage range used for current measurement.</p>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="vbusct-select">Bus voltage conversion time</label>
-                        <select id="vbusct-select" name="v_bus_conversion_time">
-                            <option value="0">50 µs</option>
-                            <option value="1">84 µs</option>
-                            <option value="2">150 µs</option>
-                            <option value="3">280 µs</option>
-                            <option value="4">540 µs</option>
-                            <option value="5" selected>1052 µs</option>
-                            <option value="6">2074 µs</option>
-                            <option value="7">4120 µs</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="vshct-select">Shunt voltage conversion time</label>
-                        <select id="vshct-select" name="v_shunt_conversion_time">
-                            <option value="0">50 µs</option>
-                            <option value="1">84 µs</option>
-                            <option value="2">150 µs</option>
-                            <option value="3">280 µs</option>
-                            <option value="4">540 µs</option>
-                            <option value="5" selected>1052 µs</option>
-                            <option value="6">2074 µs</option>
-                            <option value="7">4120 µs</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="avg-select">Averaging</label>
-                        <select id="avg-select" name="avg">
-                            <option value="0" selected>1 sample</option>
-                            <option value="1">4 samples</option>
-                            <option value="2">16 samples</option>
-                            <option value="3">64 samples</option>
-                            <option value="4">128 samples</option>
-                            <option value="5">256 samples</option>
-                            <option value="6">512 samples</option>
-                            <option value="7">1024 samples</option>
-                        </select>
-                        <p class="hint">More averaging reduces noise but slows response.</p>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="current-lsb-input">Current LSB</label>
-                        <div class="input-with-unit">
-                            <input
-                                id="current-lsb-input"
-                                name="current_lsb"
-                                type="number"
-                                min="0.000001"
-                                step="0.000001"
-                                value=""
-                                placeholder="auto"
-                            >
-                            <span>A/bit</span>
-                        </div>
-                        <p class="hint">Leave empty to derive it from max expected current.</p>
-                    </div>
+          <label for="sample-period-input"> Sampling period </label>
+          <div class="input-with-unit">
+            <input id="sample-period-input" name="sample_period_ms" type="number" min="5" max="5000" step="1" value="200">
+            <span> ms </span>
+          </div>
+          <p class="hint"> Allowed range: 5 ms to 5000 ms. </p>
+          <details class="sensor-config-group">
+            <summary>INA228 configuration</summary>
+            <div class="sensor-config-body">
+              <div class="form-group">
+                <label for="adc-range-select">ADC range</label>
+                <select id="adc-range-select" name="adc_range">
+                  <option value="0">±163.84 mV (higher current range)</option>
+                  <option value="1" selected>±40.96 mV (higher resolution)</option>
+                </select>
+                <p class="hint">Selects the shunt voltage range used for current measurement.</p>
+              </div>
+              <div class="form-group">
+                <label for="vbusct-select">Bus voltage conversion time</label>
+                <select id="vbusct-select" name="v_bus_conversion_time">
+                  <option value="0">50 µs</option>
+                  <option value="1">84 µs</option>
+                  <option value="2">150 µs</option>
+                  <option value="3">280 µs</option>
+                  <option value="4">540 µs</option>
+                  <option value="5" selected>1052 µs</option>
+                  <option value="6">2074 µs</option>
+                  <option value="7">4120 µs</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="vshct-select">Shunt voltage conversion time</label>
+                <select id="vshct-select" name="v_shunt_conversion_time">
+                  <option value="0">50 µs</option>
+                  <option value="1">84 µs</option>
+                  <option value="2">150 µs</option>
+                  <option value="3">280 µs</option>
+                  <option value="4">540 µs</option>
+                  <option value="5" selected>1052 µs</option>
+                  <option value="6">2074 µs</option>
+                  <option value="7">4120 µs</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="avg-select">Averaging</label>
+                <select id="avg-select" name="avg">
+                  <option value="0" selected>1 sample</option>
+                  <option value="1">4 samples</option>
+                  <option value="2">16 samples</option>
+                  <option value="3">64 samples</option>
+                  <option value="4">128 samples</option>
+                  <option value="5">256 samples</option>
+                  <option value="6">512 samples</option>
+                  <option value="7">1024 samples</option>
+                </select>
+                <p class="hint">More averaging reduces noise but slows response.</p>
+              </div>
+              <div class="form-group">
+                <label for="current-lsb-input">Current LSB</label>
+                <div class="input-with-unit">
+                  <input id="current-lsb-input" name="current_lsb" type="number" min="0.000001" step="0.000001" value="" placeholder="auto">
+                  <span>A/bit</span>
                 </div>
-            </details>
-
+                <p class="hint">Leave empty to derive it from max expected current.</p>
+              </div>
+            </div>
+          </details>
         </div>
-
-
-
-
         <fieldset class="recording-mode-group">
-
-
-            <legend>
-                Recording mode
-            </legend>
-
-
-
-            <label class="radio-option">
-
-                <input
-                    type="radio"
-                    name="recording_mode"
-                    value="manual"
-                    checked
-                >
-
-                <span>
-                    Manual stop
-                </span>
-
-            </label>
-
-
-
-
-            <label class="radio-option">
-
-                <input
-                    type="radio"
-                    name="recording_mode"
-                    value="timed"
-                >
-
-                <span>
-                    Timed recording
-                </span>
-
-            </label>
-
-
-
+          <legend> Recording mode </legend>
+          <label class="radio-option">
+            <input type="radio" name="recording_mode" value="manual" checked>
+            <span> Manual stop </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="recording_mode" value="timed">
+            <span> Timed recording </span>
+          </label>
         </fieldset>
-
-
-
-
-
-        <div
-            id="duration-field-container"
-            class="form-group hidden"
-        >
-
-
-            <label for="duration-seconds-input">
-
-                Duration
-
-            </label>
-
-
-
-            <div class="input-with-unit">
-
-
-                <input
-                    id="duration-seconds-input"
-                    name="duration_seconds"
-                    type="number"
-                    min="1"
-                    max="3600"
-                    step="1"
-                    value="30"
-                >
-
-
-                <span>
-                    s
-                </span>
-
-
-            </div>
-
-
-
-            <p class="hint">
-                Allowed range: 1 s to 3600 s.
-            </p>
-
-
+        <div id="duration-field-container" class="form-group hidden">
+          <label for="duration-seconds-input"> Duration </label>
+          <div class="input-with-unit">
+            <input id="duration-seconds-input" name="duration_seconds" type="number" min="1" max="3600" step="1" value="30">
+            <span> s </span>
+          </div>
+          <p class="hint"> Allowed range: 1 s to 3600 s. </p>
         </div>
-
-
-
-    </section>
-
-
-
-
-
-    <!-- CONTROLS -->
-
-    <section class="card actions">
-
-
-        <h2>
-            Control
-        </h2>
-
-
-
+      </section>
+      <!-- CONTROLS -->
+      <section class="card actions">
+        <h2> Control </h2>
         <div class="button-group">
-
-
-            <button
-                id="start-button"
-                class="button start"
-                type="button"
-            >
-                Start recording
-            </button>
-
-
-
-            <button
-                id="stop-button"
-                class="button stop"
-                type="button"
-            >
-                Stop recording
-            </button>
-
-
-
+          <button id="start-button" class="button start" type="button"> Start recording </button>
+          <button id="stop-button" class="button stop" type="button"> Stop recording </button>
         </div>
-
-
-
-    </section>
-
-
-    <!-- NAVIGATION -->
-
-    <section class="card actions">
-
-
-        <h2>
-            Navigation
-        </h2>
-
+      </section>
+      <!-- NAVIGATION -->
+      <section class="card actions">
+        <h2> Navigation </h2>
         <div class="button-group">
-
-            <a href="/view" class="button view">
-                View Data ->
-            </a>
-
+          <a href="/view" class="button view"> View Data -></a>
         </div>
-
-    </section>
-
-
-
-    <!-- STATUS -->
-
-    <section class="card status-panel">
-
-
-        <h2>
-            Status
-        </h2>
-
-
-
+      </section>
+      <!-- STATUS -->
+      <section class="card status-panel">
+        <h2> Status </h2>
         <div class="status-grid">
-
-
-
-            <div class="status-item">
-
-                <span>
-                    State
-                </span>
-
-                <strong id="status-text">
-                    Loading...
-                </strong>
-
-            </div>
-
-
-
-
-
-            <div class="status-item">
-
-                <span>
-                    Recording
-                </span>
-
-                <strong id="recording-text">
-                    No
-                </strong>
-
-            </div>
-
-
-
-
-
-            <div class="status-item">
-
-                <span>
-                    Recorded samples
-                </span>
-
-                <strong id="samples-text">
-                    0
-                </strong>
-
-            </div>
-
-
-
-
-
-            <div class="status-item">
-
-                <span>
-                    Duration
-                </span>
-
-
-                <strong>
-
-                    <span id="duration-text">
-                        0
-                    </span>
-
-                    ms
-
-                </strong>
-
-            </div>
-
-
-
-
-
-            <div class="status-item">
-
-                <span>
-                    Sample period
-                </span>
-
-
-                <strong>
-
-                    <span id="sample-period-text">
-                        0
-                    </span>
-
-                    ms
-
-                </strong>
-
-            </div>
-
-
-
-
-
-            <div class="status-item">
-
-                <span>
-                    Target duration
-                </span>
-
-
-                <strong id="target-duration-text">
-                    None
-                </strong>
-
-            </div>
-
-
-
-
-
-            <div class="status-item">
-
-                <span>
-                    Stop requested
-                </span>
-
-
-                <strong id="stop-requested-text">
-                    No
-                </strong>
-
-            </div>
-
-
-
-
-
-            <div class="status-item">
-
-                <span>
-                    Server message
-                </span>
-
-
-                <strong id="message-text">
-                    Ready
-                </strong>
-
-            </div>
-
-
-            <div class="status-item config-item">
-
-                <span>
-                    INA228 config
-                </span>
-
-                <strong id="ina228-config-summary">
-                    Default
-                </strong>
-
-                <small id="ina228-config-detail">
-                    adc_range=1, vbusct=1052 µs, vshct=1052 µs, avg=1, current_lsb=auto
-                </small>
-
-            </div>
-
-
-            <div class="status-item error">
-
-
-                <span>
-                    Last error
-                </span>
-
-
-                <strong id="error-text">
-                    None
-                </strong>
-
-
-            </div>
-
-
-
-
-
+          <div class="status-item">
+            <span> State </span>
+            <strong id="status-text"> Loading... </strong>
+          </div>
+          <div class="status-item">
+            <span> Recording </span>
+            <strong id="recording-text"> No </strong>
+          </div>
+          <div class="status-item">
+            <span> Recorded samples </span>
+            <strong id="samples-text"> 0 </strong>
+          </div>
+          <div class="status-item">
+            <span> Duration </span>
+            <strong>
+              <span id="duration-text"> 0 </span> ms </strong>
+          </div>
+          <div class="status-item">
+            <span> Sample period </span>
+            <strong>
+              <span id="sample-period-text"> 0 </span> ms </strong>
+          </div>
+          <div class="status-item">
+            <span> Target duration </span>
+            <strong id="target-duration-text"> None </strong>
+          </div>
+          <div class="status-item">
+            <span> Stop requested </span>
+            <strong id="stop-requested-text"> No </strong>
+          </div>
+          <div class="status-item">
+            <span> Server message </span>
+            <strong id="message-text"> Ready </strong>
+          </div>
+          <div class="status-item config-item">
+            <span> INA228 config </span>
+            <strong id="ina228-config-summary"> Default </strong>
+            <small id="ina228-config-detail"> adc_range=1, vbusct=1052 µs, vshct=1052 µs, avg=1, current_lsb=auto </small>
+          </div>
+          <div class="status-item error">
+            <span> Last error </span>
+            <strong id="error-text"> None </strong>
+          </div>
         </div>
-
-
-
-    </section>
-
-
-
-</main>
-
-
-
-
-<script src="/script.js"></script>
-
-
-</body>
-
+      </section>
+    </main>
+    <script src="/script.js"></script>
+  </body>
 </html>

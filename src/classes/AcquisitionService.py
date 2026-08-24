@@ -1,3 +1,4 @@
+"""Provides an asynchronous acquisition service for power measurements."""
 import time
 import uasyncio as asyncio
 
@@ -8,6 +9,8 @@ from src.config.config import MIN_SAMPLE_PERIOD_MS, MAX_SAMPLE_PERIOD_MS
 
 
 class AcquisitionService:
+    """Provides an asynchronous acquisition service for power measurements."""
+
     STATUS_IDLE = "idle"
     STATUS_RECORDING = "recording"
     STATUS_STOPPING = "stopping"
@@ -18,7 +21,14 @@ class AcquisitionService:
             logger: MeasurementLogger,
             ina228: INA228Custom | None = None,
             sample_period_ms: int = 200):
+        """
+        Initialize the acquisition service with logger and sampling configuration.
 
+        :param logger: MeasurementLogger instance for data persistence.
+        :param ina228: INA228Custom instance for measurements, or None to create later.
+        :param sample_period_ms: time between consecutive samples in milliseconds.
+        :return:
+        """
         self.__ina228 = ina228
         self.__logger = logger
         self.__sample_period_ms = sample_period_ms
@@ -41,6 +51,12 @@ class AcquisitionService:
         }
 
     def set_sample_period_ms(self, sample_period_ms: int) -> None:
+        """
+        Set the sampling period within allowed bounds.
+
+        :param sample_period_ms: new sampling period in milliseconds.
+        :return:
+        """
         if sample_period_ms < MIN_SAMPLE_PERIOD_MS:
             raise ValueError("sample_period_ms is too small")
 
@@ -50,6 +66,11 @@ class AcquisitionService:
         self.__sample_period_ms = sample_period_ms
 
     def __create_ina228(self) -> INA228Custom:
+        """
+        Create a new INA228Custom instance using the current configuration.
+
+        :return: configured INA228Custom instance.
+        """
         return INA228Custom(
             adc_range=self.__ina228_config["adc_range"],
             v_bus_conversion_time=self.__ina228_config["v_bus_conversion_time"],
@@ -59,6 +80,12 @@ class AcquisitionService:
         )
 
     def set_ina228_config(self, config: dict) -> None:
+        """
+        Update the INA228 configuration parameters.
+
+        :param config: dictionary with INA228 configuration values.
+        :return:
+        """
         if config is None:
             return
 
@@ -77,7 +104,13 @@ class AcquisitionService:
             self,
             duration_ms: int | None = 30_000,
             truncate: bool = True) -> None:
+        """
+        Start the acquisition task asynchronously.
 
+        :param duration_ms: total acquisition duration in milliseconds, or None for unlimited.
+        :param truncate: if True, overwrite existing log file; if False, append to it.
+        :return:
+        """
         if self.__task is not None and not self.__task.done():
             raise Exception("Acquisition is already running")
 
@@ -99,6 +132,13 @@ class AcquisitionService:
         )
 
     async def __run(self, duration_ms: int | None, truncate: bool) -> None:
+        """
+        Run the main acquisition loop with precise timing control.
+
+        :param duration_ms: total acquisition duration in milliseconds, or None for unlimited.
+        :param truncate: if True, overwrite existing log file; if False, append to it.
+        :return:
+        """
         self.__logger.start(truncate=truncate)
 
         start_time = time.ticks_ms()  # 12
@@ -163,6 +203,11 @@ class AcquisitionService:
                 self.__task = None
 
     async def stop(self) -> None:
+        """
+        Request graceful termination of the acquisition task.
+
+        :return:
+        """
         if self.__task is None:
             return
 
@@ -174,9 +219,19 @@ class AcquisitionService:
             pass
 
     def is_recording(self) -> bool:
+        """
+        Check if the acquisition is currently recording.
+
+        :return: True if status is recording, False otherwise.
+        """
         return self.__status == self.STATUS_RECORDING
 
     def get_status(self) -> dict:
+        """
+        Return the current acquisition status and metrics.
+
+        :return: dictionary with status, timing, and configuration information.
+        """
         now = time.ticks_ms()
 
         duration_ms = 0

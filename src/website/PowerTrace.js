@@ -99,9 +99,9 @@ function updateStatusView(data) {
     recordingText.textContent = data.is_recording ? "Yes" : "No";
     stopRequestedText.textContent = data.stop_requested ? "Yes" : "No";
     samplePeriodText.textContent = String(data.sample_period_ms);
-    targetDurationText.textContent = data.target_duration_ms === null
-        ? "None"
-        : String(data.target_duration_ms);
+    targetDurationText.textContent = data.target_duration_ms === null ?
+        "None" :
+        String(data.target_duration_ms);
     samplesText.textContent = String(data.recorded_samples);
     durationText.textContent = String(data.duration_ms);
     errorText.textContent = data.last_error ? data.last_error : "None";
@@ -118,16 +118,16 @@ function updateStatusView(data) {
     durationSecondsInput.disabled = data.is_recording || getSelectedRecordingMode() !== "timed";
 
     if (data.ina228_config) {
-    const cfg = data.ina228_config;
+        const cfg = data.ina228_config;
 
-    ina228ConfigSummary.textContent = "Configured";
-    ina228ConfigDetail.textContent =
-        `adc_range=${cfg.adc_range}, ` +
-        `vbusct=${cfg.v_bus_conversion_time}, ` +
-        `vshct=${cfg.v_shunt_conversion_time}, ` +
-        `avg=${cfg.avg}, ` +
-        `current_lsb=${cfg.current_lsb === null ? "auto" : cfg.current_lsb}`;
-    }else {
+        ina228ConfigSummary.textContent = "Configured";
+        ina228ConfigDetail.textContent =
+            `adc_range=${cfg.adc_range}, ` +
+            `vbusct=${cfg.v_bus_conversion_time}, ` +
+            `vshct=${cfg.v_shunt_conversion_time}, ` +
+            `avg=${cfg.avg}, ` +
+            `current_lsb=${cfg.current_lsb === null ? "auto" : cfg.current_lsb}`;
+    } else {
         ina228ConfigSummary.textContent = "Default";
         ina228ConfigDetail.textContent = "No INA228 configuration available.";
     }

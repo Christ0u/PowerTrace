@@ -1,3 +1,4 @@
+"""Provides a web server interface for controlling acquisition and managing measurement files."""
 import os
 import ujson
 
@@ -22,11 +23,24 @@ Response.default_content_type = "text/html"
 
 
 def configure_acquisition_service(service: AcquisitionService) -> None:
+    """
+    Configure the global acquisition service instance.
+
+    :param service: AcquisitionService instance to use for measurement operations.
+    :return:
+    """
     global acquisition_service
     acquisition_service = service
 
 
 def get_response_from_json(payload: dict, status_code: int) -> Response:
+    """
+    Create a JSON-formatted HTTP response.
+
+    :param payload: dictionary to serialize as JSON.
+    :param status_code: HTTP status code for the response.
+    :return: Response object with JSON content.
+    """
     return Response(
         body=ujson.dumps(payload),
         status_code=status_code,
@@ -35,6 +49,12 @@ def get_response_from_json(payload: dict, status_code: int) -> Response:
 
 
 def parse_sample_period_ms(request) -> int:
+    """
+    Parse and validate the sample period from request form data.
+
+    :param request: incoming HTTP request with form data.
+    :return: validated sample period in milliseconds.
+    """
     raw_value = request.form.get("sample_period_ms")
 
     if raw_value is None:
@@ -58,6 +78,12 @@ def parse_sample_period_ms(request) -> int:
 
 
 def parse_duration_ms(request) -> int | None:
+    """
+    Parse and validate the acquisition duration from request form data.
+
+    :param request: incoming HTTP request with form data.
+    :return: duration in milliseconds, or None for manual mode.
+    """
     recording_mode = request.form.get("recording_mode")
 
     if recording_mode is None:
@@ -88,6 +114,12 @@ def parse_duration_ms(request) -> int | None:
 
 
 def parse_ina228_config(request) -> dict:
+    """
+    Parse INA228 configuration parameters from request form data.
+
+    :param request: incoming HTTP request with form data.
+    :return: dictionary with validated INA228 configuration values.
+    """
     def parse_int_field(name: str, minimum: int, maximum: int, default: int):
         raw_value = request.form.get(name)
         if raw_value is None or raw_value == "":
@@ -216,6 +248,12 @@ async def data_view_script(request) -> Response:
 
 @application.route("/api/acquisition/status")
 async def acquisition_status(request) -> Response:
+    """
+    Return the current acquisition service status.
+
+    :param request: incoming HTTP request.
+    :return: HTTP response containing acquisition status as JSON.
+    """
     if acquisition_service is None:
         return get_response_from_json(
             payload={
@@ -234,6 +272,12 @@ async def acquisition_status(request) -> Response:
 
 @application.post("/api/acquisition/start")
 async def acquisition_start(request) -> Response:
+    """
+    Start a new acquisition session with provided parameters.
+
+    :param request: incoming HTTP POST request with acquisition parameters.
+    :return: HTTP response containing start result and status as JSON.
+    """
     if acquisition_service is None:
         return get_response_from_json(
             payload={
@@ -282,6 +326,12 @@ async def acquisition_start(request) -> Response:
 
 @application.post("/api/acquisition/stop")
 async def acquisition_stop(request) -> Response:
+    """
+    Stop the current acquisition session.
+
+    :param request: incoming HTTP POST request.
+    :return: HTTP response containing stop result and status as JSON.
+    """
     if acquisition_service is None:
         return get_response_from_json(
             payload={
@@ -588,7 +638,7 @@ async def files_delete(request) -> Response:
 @application.route("/chart.min.js")
 async def chart_js(request) -> Response:
     """
-    Serve Chart.js library.
+    Serve chart.min.js library.
 
     :param request: incoming HTTP request.
     :return: HTTP response containing the JavaScript file.

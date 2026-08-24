@@ -10,7 +10,7 @@ const detailFilename = document.getElementById("detail-filename");
 const detailStats = document.getElementById("detail-stats");
 const dataTableBody = document.getElementById("data-table-body");
 
-let currentFileName = null;  // Track the currently displayed file
+let currentFileName = null; // Track the currently displayed file
 
 // Chart instances
 let chartCurrent = null;
@@ -130,7 +130,10 @@ async function handleFileClick(fileName) {
     `;
 
     // Scroll to detail section
-    fileDetailSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    fileDetailSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
 
     try {
         await loadFileData(fileName);
@@ -164,7 +167,12 @@ async function loadFileData(fileName) {
  * @param {Object} data - File data from server.
  */
 function renderFileDetail(data) {
-    const { filename, file_size_bytes, record_count, total_records } = data;
+    const {
+        filename,
+        file_size_bytes,
+        record_count,
+        total_records
+    } = data;
 
     // Update file info
     detailFilename.textContent = filename;
@@ -258,7 +266,10 @@ async function deleteCurrentFile() {
         await fetchFileList();
 
         // Scroll to file list
-        fileListSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        fileListSection.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
 
     } catch (error) {
         console.error("Delete error:", error);
@@ -274,7 +285,10 @@ async function deleteCurrentFile() {
  */
 function computeHistogram(data, bins = 20) {
     if (data.length === 0) {
-        return { labels: [], values: [] };
+        return {
+            labels: [],
+            values: []
+        };
     }
 
     const min = Math.min(...data);
@@ -337,9 +351,9 @@ function calculateMedian(data) {
     if (data.length === 0) return 0;
     const sorted = [...data].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 !== 0
-        ? sorted[mid]
-        : (sorted[mid - 1] + sorted[mid]) / 2;
+    return sorted.length % 2 !== 0 ?
+        sorted[mid] :
+        (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
 /**
@@ -644,7 +658,10 @@ function renderAnalyticalCharts(records) {
         data: {
             datasets: [{
                 label: 'V vs I',
-                data: voltageData.map((v, i) => ({ x: v, y: currentData[i] })),
+                data: voltageData.map((v, i) => ({
+                    x: v,
+                    y: currentData[i]
+                })),
                 backgroundColor: 'rgba(124, 58, 237, 0.5)',
                 borderColor: '#7c3aed',
                 borderWidth: 1,
@@ -877,7 +894,10 @@ function exportCsv() {
 // Close detail button
 closeDetailButton.addEventListener("click", () => {
     fileDetailSection.classList.add("hidden");
-    fileListSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    fileListSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
 });
 
 // Delete file button

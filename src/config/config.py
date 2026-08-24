@@ -1,3 +1,4 @@
+"""Defines configuration constants for the PowerTrace system."""
 SPI_BAUDRATE: int = 20_000_000
 SPI_ID: int = 1
 I2C_FREQUENCY: int = 400_000
@@ -27,4 +28,6 @@ MAX_SAMPLE_PERIOD_MS = 5000
 MIN_DURATION_S = 1
 MAX_DURATION_S = 3600
 
+# Struct format string for binary measurement records
+# (timestamp, voltage, current)
 RECORD_FORMAT = "<Iff"

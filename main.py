@@ -1,3 +1,4 @@
+"""Provides the main entry point for the PowerTrace application."""
 import uasyncio as asyncio
 
 from src.classes.SDCardCustom import SDCardCustom
@@ -13,14 +14,17 @@ wifi.create_open_access_point(SSID)
 
 
 async def main():
+    """
+    Initialize hardware peripherals and start the web server.
+
+    :return:
+    """
     sdcard = SDCardCustom()
     logger = MeasurementLogger(sdcard=sdcard)
 
     acquisition_service = AcquisitionService(logger=logger)
 
     PowerTrace.configure_acquisition_service(acquisition_service)
-
-    print("Starting web server...")
 
     await PowerTrace.application.start_server(port=int(WEB_SERVER_PORT))
 

@@ -301,7 +301,6 @@ class INA228:
         config = self.read_register16(self.__INA228_CONFIG)
         data = 1 << INA228_RST_NBIT
         config = config | data
-        print('reset all', self.__INA228_CONFIG, config)
         self.write_register16(self.__INA228_CONFIG, config)
 
     def reset_energy(self):
@@ -377,8 +376,7 @@ class INA228:
         vshunt = INA228.__convert2comp2float(
             raw >> 4,
             20,
-            conversion_factor)  # Find and fix *10
-        # print('Shunt voltage: ', vshunt)
+            conversion_factor)
         return vshunt
 
     def get_vbus_voltage(self):
@@ -386,14 +384,12 @@ class INA228:
         conversion_factor = 195.3125e-6  # uV/LSB
         raw = self.read_register24(self.__INA228_VBUS)
         vbus = INA228.__convert2comp2float(raw >> 4, 20, conversion_factor)
-        # print('VBUS voltage: ', vbus)
         return vbus
 
     def get_temp_voltage(self):
         conversion_factor = 7.8125e-3
         raw = self.read_register16(self.__INA228_DIETEMP)
         temp = INA228.__convert2comp2float(raw, 16, conversion_factor)
-        # print('Die temp: ', temp)
         return temp
 
     def get_current(self):
