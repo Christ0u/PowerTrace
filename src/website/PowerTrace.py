@@ -4,7 +4,7 @@ import ujson
 
 from src.classes.AcquisitionService import AcquisitionService
 from src.config.config import WEBSITE_NAME, WEB_SERVER_ROOT_PATH, WEB_SERVER_STYLE_PATH, WEB_SERVER_SCRIPT_PATH, \
-    MIN_SAMPLE_PERIOD_MS, MAX_SAMPLE_PERIOD_MS, MIN_DURATION_S, MAX_DURATION_S
+    MIN_SAMPLE_PERIOD_MS, MAX_SAMPLE_PERIOD_MS, MIN_DURATION_S, MAX_DURATION_S, RECORD_FORMAT
 from src.libs.microdot import Microdot, Response
 from src.libs.utemplate import Template
 
@@ -477,8 +477,6 @@ async def files_read(request) -> Response:
             raw_data = f.read()
 
         # Parse binary data
-        # timestamp (uint32), bus_voltage (float), current (float)
-        RECORD_FORMAT = "<Iff"
         record_size = struct.calcsize(RECORD_FORMAT)
         raw_len = len(raw_data)
 
@@ -694,8 +692,6 @@ async def files_export(request) -> Response:
             raw_data = f.read()
 
         # Parse binary data
-        # timestamp (uint32), bus_voltage (float), current (float)
-        RECORD_FORMAT = "<Iff"
         record_size = struct.calcsize(RECORD_FORMAT)
         raw_len = len(raw_data)
 

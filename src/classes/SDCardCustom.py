@@ -3,7 +3,7 @@ import os
 from machine import SPI, Pin
 from src.libs.sdcard import SDCard
 
-from src.config.config import SPI_BAUDRATE, SPI_ID
+from src.config.config import SPI_BAUDRATE, SPI_ID, SDCARD_ROOT_PATH
 from src.config.pins import PIN_SDCARD_SCK, PIN_SDCARD_MISO, PIN_SDCARD_MOSI, PIN_SDCARD_CS
 
 
@@ -55,11 +55,11 @@ class SDCardCustom:
         :return:
         """
         try:
-            os.umount("/sd")
+            os.umount(SDCARD_ROOT_PATH)
         except OSError:
             pass
 
-        os.mount(self.__sdcard_interface, "/sd", readonly=False)
+        os.mount(self.__sdcard_interface, SDCARD_ROOT_PATH, readonly=False)
 
     @staticmethod
     def path_exists(path: str) -> bool:
