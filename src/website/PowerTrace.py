@@ -246,6 +246,34 @@ async def data_view_script(request) -> Response:
     )
 
 
+@application.route("/favicon.ico")
+async def favicon(request) -> Response:
+    """
+    Serve the website favicon.
+
+    :param request: incoming HTTP request.
+    :return: HTTP response containing the favicon file.
+    """
+    favicon_path = WEB_SERVER_ROOT_PATH + "/favicon.ico"
+
+    try:
+        return Response(
+            body=open(favicon_path, "rb"),
+            headers={
+                "Content-Type": "image/x-icon",
+                "Cache-Control": "public, max-age=86400",
+            },
+        )
+    except OSError:
+        return Response(
+            body=b"",
+            status_code=204,
+            headers={
+                "Cache-Control": "public, max-age=86400",
+            },
+        )
+
+
 @application.route("/api/acquisition/status")
 async def acquisition_status(request) -> Response:
     """
@@ -565,7 +593,6 @@ async def files_read(request) -> Response:
         )
 
 
-@application.post("/api/files/delete")
 @application.post("/api/files/delete")
 async def files_delete(request) -> Response:
     """
